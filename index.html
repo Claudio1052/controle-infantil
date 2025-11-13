@@ -5,7 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle Infantil - Sistema de Entrada e Saída</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module">
+    // Configuração do Supabase usando a sintaxe de importação
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+    
+    // --- CORREÇÃO APLICADA AQUI ---
+    // O valor anterior 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw' estava incorreto.
+    // A URL correta foi extraída da sua supabaseKey.
+    const supabaseUrl = 'https://wzzyxbkhmlfilvlihvzl.supabase.co'
+    // --- FIM DA CORREÇÃO ---
+    
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2NDk0MjMsImV4cCI6MjA1MDIyNTQyM30.IBjKSIm1zp2TuUcWet4VLA_vvrhFc5q'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    
+    // Tornar o supabase disponível globalmente
+    window.supabase = supabase;
+    
+    // Inicializar a aplicação quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.initApp) {
+        window.initApp();
+      }
+    });
+  </script>
   <style>
     /* SEU CSS PERMANECE IGUAL */
     :root {
@@ -348,6 +370,101 @@
       font-size: 12px;
       color: #666;
     }
+
+    /* NOVOS ESTILOS PARA AS MELHORIAS */
+    .search-container {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: var(--box-shadow);
+      display: none;
+    }
+
+    .search-result-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    .search-result-item:hover {
+      background-color: #f0f7ff;
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-present {
+      background-color: #10b981;
+    }
+
+    .status-absent {
+      background-color: #ef4444;
+    }
+
+    .confirmation-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .confirmation-content {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--box-shadow);
+    }
+
+    .confirmation-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .confirmation-buttons button {
+      flex: 1;
+    }
+
+    .input-error {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.2) !important;
+    }
+
+    .error-message {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 5px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -380,7 +497,11 @@
         <h2><i class="fas fa-edit"></i> Registro Rápido</h2>
         <div class="form-group">
           <label for="codigo">Número da Criança:</label>
-          <input type="text" id="codigo" placeholder="Digite ou escaneie o código" autocomplete="off" />
+          <div class="search-container">
+            <input type="text" id="codigo" placeholder="Digite ou escaneie o código" autocomplete="off" />
+            <div class="search-results" id="search-results"></div>
+          </div>
+          <div class="error-message" id="codigo-error"></div>
         </div>
         <div class="form-group">
           <label for="acao">Ação:</label>
@@ -392,6 +513,7 @@
         <div class="form-group">
           <label for="professor">Professor/Responsável:</label>
           <input type="text" id="professor" placeholder="Nome do professor ou secretário" autocomplete="off" />
+          <div class="error-message" id="professor-error"></div>
         </div>
         <button class="btn" onclick="registrar()" id="btn-registrar">
           <i class="fas fa-check-circle"></i> Registrar
@@ -465,27 +587,59 @@
     </section>
   </div>
 
+  <div class="confirmation-modal" id="confirmation-modal">
+    <div class="confirmation-content">
+      <h3 id="confirmation-title">Confirmar Ação</h3>
+      <p id="confirmation-message">Tem certeza que deseja realizar esta ação?</p>
+      <div class="confirmation-buttons">
+        <button class="btn btn-danger" id="confirmation-cancel">Cancelar</button>
+        <button class="btn btn-success" id="confirmation-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="notification" class="notification"></div>
 
   <script>
-    // Configuração do Supabase
-    const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2NDk0MjMsImV4cCI6MjA1MDIyNTQyM30.IBjKSIm1zp2TuUcWet4VLA_vvrhFc5q';
-    
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     // Elementos DOM
     const tabela = document.querySelector("#tabela tbody");
     const statusContainer = document.getElementById("status-container");
     const notification = document.getElementById("notification");
     const btnRegistrar = document.getElementById("btn-registrar");
     const debugInfo = document.getElementById("debug-info");
+    const searchResults = document.getElementById("search-results");
+    const codigoInput = document.getElementById("codigo");
+    const professorInput = document.getElementById("professor");
+    const confirmationModal = document.getElementById("confirmation-modal");
+    const confirmationTitle = document.getElementById("confirmation-title");
+    const confirmationMessage = document.getElementById("confirmation-message");
+    const confirmationCancel = document.getElementById("confirmation-cancel");
+    const confirmationConfirm = document.getElementById("confirmation-confirm");
 
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', function() {
+    // Variáveis globais
+    let currentAction = null;
+    let currentCriancaId = null;
+
+    // Função de inicialização da aplicação
+    window.initApp = function() {
       testarConexao();
-      document.getElementById('codigo').focus();
-    });
+      codigoInput.focus();
+      
+      // Configurar eventos de busca
+      codigoInput.addEventListener('input', buscarCriancas);
+      
+      // Configurar modal de confirmação
+      confirmationCancel.addEventListener('click', () => {
+        confirmationModal.style.display = 'none';
+      });
+      
+      // Fechar modal ao clicar fora
+      confirmationModal.addEventListener('click', (e) => {
+        if (e.target === confirmationModal) {
+          confirmationModal.style.display = 'none';
+        }
+      });
+    };
 
     // Testar conexão com Supabase
     async function testarConexao() {
@@ -493,7 +647,7 @@
         debugInfo.textContent = "Status: Testando conexão com o banco...";
         
         // Testa se consegue acessar as tabelas
-        const { data, error } = await supabase
+        const { data, error } = await window.supabase
           .from('criancas')
           .select('count')
           .limit(1);
@@ -535,17 +689,144 @@
       }
     }
 
+    // Buscar crianças por código
+    async function buscarCriancas() {
+      const query = codigoInput.value.trim();
+      
+      if (query.length < 1) {
+        searchResults.style.display = 'none';
+        return;
+      }
+      
+      try {
+        const { data: criancas, error } = await window.supabase
+          .from('criancas')
+          .select('id, codigo')
+          .ilike('codigo', `%${query}%`)
+          .limit(5);
+          
+        if (error) throw error;
+        
+        // Limpar resultados anteriores
+        searchResults.innerHTML = '';
+        
+        if (criancas && criancas.length > 0) {
+          criancas.forEach(crianca => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.textContent = crianca.codigo;
+            item.addEventListener('click', () => {
+              codigoInput.value = crianca.codigo;
+              searchResults.style.display = 'none';
+              currentCriancaId = crianca.id;
+            });
+            searchResults.appendChild(item);
+          });
+          searchResults.style.display = 'block';
+        } else {
+          searchResults.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Erro na busca:', error);
+        searchResults.style.display = 'none';
+      }
+    }
+
+    // Validar formulário
+    function validarFormulario() {
+      let valido = true;
+      
+      // Limpar erros anteriores
+      document.querySelectorAll('.input-error').forEach(el => {
+        el.classList.remove('input-error');
+      });
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // Validar código
+      if (!codigoInput.value.trim()) {
+        codigoInput.classList.add('input-error');
+        document.getElementById('codigo-error').textContent = 'Por favor, informe o número da criança';
+        document.getElementById('codigo-error').style.display = 'block';
+        valido = false;
+      }
+      
+      // Validar professor
+      if (!professorInput.value.trim()) {
+        professorInput.classList.add('input-error');
+        document.getElementById('professor-error').textContent = 'Por favor, informe o nome do professor/responsável';
+        document.getElementById('professor-error').style.display = 'block';
+        valido = false;
+      }
+      
+      return valido;
+    }
+
+    // Mostrar modal de confirmação
+    function mostrarConfirmacao(titulo, mensagem, callback) {
+      confirmationTitle.textContent = titulo;
+      confirmationMessage.textContent = mensagem;
+      confirmationModal.style.display = 'flex';
+      
+      // Configurar evento de confirmação
+      confirmationConfirm.onclick = () => {
+        confirmationModal.style.display = 'none';
+        callback();
+      };
+    }
+
     // Função principal para registrar entrada/saída
     async function registrar() {
-      const codigo = document.getElementById("codigo").value.trim();
+      const codigo = codigoInput.value.trim();
       const acao = document.getElementById("acao").value;
-      const professor = document.getElementById("professor").value.trim();
+      const professor = professorInput.value.trim();
 
-      if (!codigo || !professor) {
-        mostrarNotificacao("Por favor, preencha todos os campos!", "error");
+      if (!validarFormulario()) {
         return;
       }
 
+      // Verificar se a criança já está presente/ausente
+      try {
+        const { data: status, error } = await window.supabase
+          .from('status_presenca')
+          .select('presente')
+          .eq('crianca_id', currentCriancaId)
+          .single();
+          
+        if (error && error.code !== 'PGRST116') throw error;
+        
+        let mensagemConfirmacao = '';
+        
+        if (acao === 'entrada') {
+          if (status && status.presente) {
+            mensagemConfirmacao = `A criança ${codigo} já está presente. Deseja registrar uma nova entrada?`;
+          } else {
+            mensagemConfirmacao = `Confirmar entrada da criança ${codigo}?`;
+          }
+        } else {
+          if (!status || !status.presente) {
+            mensagemConfirmacao = `A criança ${codigo} não está presente. Deseja registrar uma saída mesmo assim?`;
+          } else {
+            mensagemConfirmacao = `Confirmar saída da criança ${codigo}?`;
+          }
+        }
+        
+        mostrarConfirmacao(
+          'Confirmar Registro',
+          mensagemConfirmacao,
+          () => realizarRegistro(codigo, acao, professor)
+        );
+        
+      } catch (error) {
+        console.error('Erro ao verificar status:', error);
+        // Se houver erro na verificação, prosseguir com o registro
+        realizarRegistro(codigo, acao, professor);
+      }
+    }
+
+    // Realizar o registro após confirmação
+    async function realizarRegistro(codigo, acao, professor) {
       toggleLoading(true);
 
       try {
@@ -559,7 +840,7 @@
         }
 
         // 2. Inserir registro
-        const { error: registroError } = await supabase
+        const { error: registroError } = await window.supabase
           .from('registros')
           .insert([{
             crianca_id: criancaId,
@@ -572,7 +853,7 @@
         if (registroError) throw registroError;
 
         // 3. Atualizar status de presença
-        const { error: statusError } = await supabase
+        const { error: statusError } = await window.supabase
           .from('status_presenca')
           .upsert({
             crianca_id: criancaId,
@@ -585,13 +866,15 @@
         if (statusError) throw statusError;
 
         // Sucesso!
-        mostrarNotificacao(`${acao.toUpperCase()} registrada para criança ${codigo}`);
+        mostrarNotificacao(`${acao === 'entrada' ? 'Entrada' : 'Saída'} registrada para criança ${codigo}`);
         debugInfo.innerHTML = "Status: <span style='color: green;'>✓ Registro salvo com sucesso</span>";
         
         // Limpar campos e atualizar interface
-        document.getElementById("codigo").value = "";
-        document.getElementById("professor").value = "";
-        document.getElementById("codigo").focus();
+        codigoInput.value = "";
+        professorInput.value = "";
+        searchResults.style.display = "none";
+        currentCriancaId = null;
+        codigoInput.focus();
         
         await atualizarDados();
 
@@ -606,8 +889,13 @@
 
     // Função auxiliar para obter ou criar criança
     async function obterOuCriarCrianca(codigo) {
+      // Se já temos o ID, retornar
+      if (currentCriancaId) {
+        return currentCriancaId;
+      }
+      
       // Primeiro, tenta encontrar a criança
-      const { data: criancaExistente, error: findError } = await supabase
+      const { data: criancaExistente, error: findError } = await window.supabase
         .from('criancas')
         .select('id')
         .eq('codigo', codigo)
@@ -623,7 +911,7 @@
       }
 
       // Se não encontrou, cria nova criança
-      const { data: novaCrianca, error: createError } = await supabase
+      const { data: novaCrianca, error: createError } = await window.supabase
         .from('criancas')
         .insert([{ codigo: codigo }])
         .select()
@@ -632,7 +920,7 @@
       if (createError) throw createError;
 
       // Cria registro inicial de status
-      await supabase
+      await window.supabase
         .from('status_presenca')
         .insert([{ crianca_id: novaCrianca.id, presente: false }]);
 
@@ -652,18 +940,18 @@
     async function atualizarEstatisticas() {
       try {
         // Total de crianças
-        const { count: totalCriancas } = await supabase
+        const { count: totalCriancas } = await window.supabase
           .from('criancas')
           .select('*', { count: 'exact', head: true });
 
         // Crianças presentes
-        const { count: criancasPresentes } = await supabase
+        const { count: criancasPresentes } = await window.supabase
           .from('status_presenca')
           .select('*', { count: 'exact', head: true })
           .eq('presente', true);
 
         // Total de registros
-        const { count: totalRegistros } = await supabase
+        const { count: totalRegistros } = await window.supabase
           .from('registros')
           .select('*', { count: 'exact', head: true });
 
@@ -679,7 +967,7 @@
     // Atualizar tabela de histórico
     async function atualizarTabela(filtros = {}) {
       try {
-        let query = supabase
+        let query = window.supabase
           .from('registros')
           .select(`
             *,
@@ -693,7 +981,7 @@
         }
         
         if (filtros.codigo) {
-          const { data: criancasFiltradas } = await supabase
+          const { data: criancasFiltradas } = await window.supabase
             .from('criancas')
             .select('id')
             .ilike('codigo', `%${filtros.codigo}%`);
@@ -708,7 +996,7 @@
         }
         
         if (filtros.acao) {
-          query = query.eq('acao', filtros.acao);
+          query = query.eq('acao', filtros.aco);
         }
 
         const { data: registros, error } = await query;
@@ -754,19 +1042,33 @@
     // Atualizar status das crianças presentes
     async function atualizarStatus() {
       try {
-        const { data: presentes, error } = await supabase
+        const { data: status, error } = await window.supabase
           .from('status_presenca')
           .select(`
             crianca_id,
+            presente,
             criancas (codigo)
-          `)
-          .eq('presente', true);
+          `);
 
         if (error) throw error;
 
         statusContainer.innerHTML = '';
         
-        if (!presentes || presentes.length === 0) {
+        if (!status || status.length === 0) {
+          statusContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-child"></i>
+              <p>Nenhuma criança registrada</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Separar presentes e ausentes
+        const presentes = status.filter(item => item.presente);
+        const ausentes = status.filter(item => !item.presente);
+        
+        if (presentes.length === 0) {
           statusContainer.innerHTML = `
             <div class="empty-state">
               <i class="fas fa-child"></i>
@@ -776,6 +1078,14 @@
           return;
         }
         
+        // Adicionar título
+        const titulo = document.createElement('h3');
+        titulo.textContent = 'Crianças Presentes';
+        titulo.style.marginBottom = '1rem';
+        titulo.style.color = 'var(--primary)';
+        statusContainer.appendChild(titulo);
+        
+        // Listar crianças presentes
         presentes.forEach(item => {
           const div = document.createElement('div');
           div.className = 'status-item';
@@ -791,7 +1101,7 @@
           
           div.innerHTML = `
             <div>
-              <i class="fas fa-child" style="color: #4361ee; margin-right: 8px;"></i>
+              <span class="status-indicator status-present"></span>
               <strong>Criança ${item.criancas.codigo}</strong>
             </div>
             <span class="badge badge-success">Presente</span>
@@ -799,6 +1109,41 @@
           
           statusContainer.appendChild(div);
         });
+        
+        // Adicionar seção de ausentes se houver
+        if (ausentes.length > 0) {
+          const tituloAusentes = document.createElement('h3');
+          tituloAusentes.textContent = 'Crianças Ausentes';
+          tituloAusentes.style.marginTop = '1.5rem';
+          tituloAusentes.style.marginBottom = '1rem';
+          tituloAusentes.style.color = 'var(--gray)';
+          statusContainer.appendChild(tituloAusentes);
+          
+          ausentes.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'status-item';
+            div.style.cssText = `
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 10px;
+              background: #f8f9fa;
+              border-radius: 8px;
+              margin-bottom: 8px;
+              opacity: 0.7;
+            `;
+            
+            div.innerHTML = `
+              <div>
+                <span class="status-indicator status-absent"></span>
+                <strong>Criança ${item.criancas.codigo}</strong>
+              </div>
+              <span class="badge badge-danger">Ausente</span>
+            `;
+            
+            statusContainer.appendChild(div);
+          });
+        }
 
       } catch (error) {
         console.error('Erro ao carregar status:', error);
@@ -829,13 +1174,18 @@
 
     // Excluir registro
     async function excluirRegistro(id) {
-      if (!confirm('Tem certeza que deseja excluir este registro?')) {
-        return;
-      }
+      mostrarConfirmacao(
+        'Excluir Registro',
+        'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.',
+        () => realizarExclusao(id)
+      );
+    }
 
+    // Realizar exclusão após confirmação
+    async function realizarExclusao(id) {
       try {
         // Primeiro, obtém o registro para saber qual criança e ação
-        const { data: registro, error: fetchError } = await supabase
+        const { data: registro, error: fetchError } = await window.supabase
           .from('registros')
           .select('*')
           .eq('id', id)
@@ -844,7 +1194,7 @@
         if (fetchError) throw fetchError;
 
         // Exclui o registro
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await window.supabase
           .from('registros')
           .delete()
           .eq('id', id);
@@ -854,7 +1204,7 @@
         // Se era uma entrada, verifica se precisa atualizar o status
         if (registro.acao === 'entrada') {
           // Verifica se há outra entrada mais recente para a mesma criança
-          const { data: ultimoRegistro } = await supabase
+          const { data: ultimoRegistro } = await window.supabase
             .from('registros')
             .select('acao')
             .eq('crianca_id', registro.crianca_id)
@@ -865,7 +1215,7 @@
           // Atualiza status baseado no último registro
           const presente = ultimoRegistro && ultimoRegistro.acao === 'entrada';
           
-          await supabase
+          await window.supabase
             .from('status_presenca')
             .update({ presente: presente })
             .eq('crianca_id', registro.crianca_id);
