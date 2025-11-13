@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -113,27 +112,18 @@
     .confirmation-buttons { display:flex; gap:1rem; margin-top:1.5rem; }
     .input-error { border-color: var(--danger) !important; box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.2) !important; }
     .error-message { color: var(--danger); font-size: 0.85rem; margin-top:5px; display:none; }
-  </style>
-
-  <script type="module">
-    // Importação via ESM.sh (Mais estável para uso direto no navegador)
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-    // === CONFIGURAÇÃO ===
-    // Correção: URL terminando em 'vzl' baseado no seu histórico
-    const supabaseUrl = 'https://wzzyxbkhmlfilvlihvvl.supabase.co'
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTAzNzcsImV4cCI6MjA3ODYyNjM3N30.K_QwwVD20xnlhNvTxb0jdTeH_3LU30W_aDeHquraQg8'
     
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    // Disponibiliza globalmente
-    window.supabase = supabase;
-
-    // Inicializa
-    document.addEventListener('DOMContentLoaded', function() {
-      if (window.initApp) window.initApp();
-    });
-  </script>
+    .connection-status { 
+      padding: 8px 12px; 
+      border-radius: 4px; 
+      margin: 10px 0; 
+      font-weight: bold; 
+      text-align: center;
+    }
+    .connection-status.connected { background: #d1fae5; color: #065f46; }
+    .connection-status.error { background: #fee2e2; color: #991b1b; }
+    .connection-status.connecting { background: #fef3c7; color: #92400e; }
+  </style>
 </head>
 <body>
   <header>
@@ -142,6 +132,8 @@
   </header>
 
   <div class="container">
+    <div class="connection-status" id="connection-status">Conectando ao banco de dados...</div>
+    
     <div class="stats">
       <div class="stat-card">
         <i class="fas fa-users"></i>
@@ -201,7 +193,8 @@
         </div>
 
         <div class="debug-info" id="debug-info">
-          Status: Conectando ao banco de dados...
+          <strong>Informações de Debug:</strong><br>
+          <div id="debug-details">Carregando...</div>
         </div>
       </section>
 
@@ -273,39 +266,98 @@
 
   <div id="notification" class="notification"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Configuração do Supabase
+    const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTAzNzcsImV4cCI6MjA3ODYyNjM3N30.K_QwwVD20xnlhNvTxb0jdTeH_3LU30W_aDeHquraQg8';
+    
+    // Inicialização do Supabase
+    let supabase;
+    
     // Elementos DOM
-    const tabela = document.querySelector("#tabela tbody");
-    const statusContainer = document.getElementById("status-container");
-    const notification = document.getElementById("notification");
-    const btnRegistrar = document.getElementById("btn-registrar");
-    const debugInfo = document.getElementById("debug-info");
-    const searchResults = document.getElementById("search-results");
-    const codigoInput = document.getElementById("codigo");
-    const professorInput = document.getElementById("professor");
-    const confirmationModal = document.getElementById("confirmation-modal");
-    const confirmationTitle = document.getElementById("confirmation-title");
-    const confirmationMessage = document.getElementById("confirmation-message");
-    const confirmationCancel = document.getElementById("confirmation-cancel");
-    const confirmationConfirm = document.getElementById("confirmation-confirm");
-
+    let tabela, statusContainer, notification, btnRegistrar, debugInfo, searchResults;
+    let codigoInput, professorInput, confirmationModal, confirmationTitle, confirmationMessage;
+    let confirmationCancel, confirmationConfirm, connectionStatus, debugDetails;
+    
     // Variáveis globais
     let currentCriancaId = null;
+    let isConnected = false;
 
-    // Inicialização
-    window.initApp = function() {
+    // Inicialização quando a página carrega
+    document.addEventListener('DOMContentLoaded', function() {
+      initApp();
+    });
+
+    function initApp() {
+      // Inicializar elementos DOM
+      initDOMElements();
+      
+      // Inicializar Supabase
+      initSupabase();
+      
+      // Configurar event listeners
+      setupEventListeners();
+      
+      // Testar conexão
       testarConexao();
-      codigoInput.focus();
+    }
 
+    function initDOMElements() {
+      tabela = document.querySelector("#tabela tbody");
+      statusContainer = document.getElementById("status-container");
+      notification = document.getElementById("notification");
+      btnRegistrar = document.getElementById("btn-registrar");
+      debugInfo = document.getElementById("debug-info");
+      debugDetails = document.getElementById("debug-details");
+      searchResults = document.getElementById("search-results");
+      codigoInput = document.getElementById("codigo");
+      professorInput = document.getElementById("professor");
+      confirmationModal = document.getElementById("confirmation-modal");
+      confirmationTitle = document.getElementById("confirmation-title");
+      confirmationMessage = document.getElementById("confirmation-message");
+      confirmationCancel = document.getElementById("confirmation-cancel");
+      confirmationConfirm = document.getElementById("confirmation-confirm");
+      connectionStatus = document.getElementById("connection-status");
+    }
+
+    function initSupabase() {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("Supabase inicializado");
+        debugDetails.textContent = "Cliente Supabase inicializado";
+      } catch (error) {
+        console.error("Erro ao inicializar Supabase:", error);
+        updateConnectionStatus("error", "Erro ao inicializar: " + error.message);
+        debugDetails.textContent = "Erro: " + error.message;
+      }
+    }
+
+    function setupEventListeners() {
       codigoInput.addEventListener('input', debounce(buscarCriancas, 300));
-
+      
       confirmationCancel.addEventListener('click', () => {
         confirmationModal.style.display = 'none';
       });
+      
       confirmationModal.addEventListener('click', (e) => {
         if (e.target === confirmationModal) confirmationModal.style.display = 'none';
       });
-    };
+      
+      // Focar no campo de código quando a página carrega
+      codigoInput.focus();
+    }
+
+    function updateConnectionStatus(status, message) {
+      connectionStatus.textContent = message;
+      connectionStatus.className = `connection-status ${status}`;
+      
+      if (status === 'connected') {
+        isConnected = true;
+      } else {
+        isConnected = false;
+      }
+    }
 
     function debounce(fn, wait) {
       let t;
@@ -318,33 +370,57 @@
     // Testar conexão
     async function testarConexao() {
       try {
-        debugInfo.textContent = "Status: Testando conexão...";
+        updateConnectionStatus("connecting", "Conectando ao banco de dados...");
+        debugDetails.textContent = "Testando conexão com o Supabase...";
         
         // Verifica se existe a tabela e se temos permissão de leitura
-        const { data, error } = await window.supabase
+        const { data, error, count } = await supabase
           .from('criancas')
-          .select('count', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .limit(1);
 
         if (error) {
           // Erro 42P01 = Tabela não existe
           if(error.code === '42P01') {
-            debugInfo.innerHTML = "Status: <span style='color: red;'>ERRO: Tabelas não criadas. Rode o SQL no Supabase.</span>";
+            updateConnectionStatus("error", "ERRO: Tabelas não criadas. Execute o SQL no Supabase.");
+            debugDetails.innerHTML = `
+              <strong>Erro:</strong> Tabela não encontrada<br>
+              <strong>Código:</strong> ${error.code}<br>
+              <strong>Detalhes:</strong> ${error.message}<br>
+              <strong>Solução:</strong> Execute o SQL de criação de tabelas no Supabase
+            `;
           } 
           // Erro de Fetch = CORS ou URL errada
           else if(error.message && error.message.includes("Failed to fetch")) {
-            debugInfo.innerHTML = "Status: <span style='color: red;'>ERRO DE CONEXÃO: Verifique CORS e a URL no código.</span>";
+            updateConnectionStatus("error", "ERRO DE CONEXÃO: Verifique a URL e CORS");
+            debugDetails.innerHTML = `
+              <strong>Erro:</strong> Falha na conexão<br>
+              <strong>Detalhes:</strong> ${error.message}<br>
+              <strong>Solução:</strong> Verifique se a URL está correta e se o CORS está configurado
+            `;
           }
           else {
-            debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
+            updateConnectionStatus("error", "ERRO: " + error.message);
+            debugDetails.innerHTML = `
+              <strong>Erro:</strong> ${error.message}<br>
+              <strong>Código:</strong> ${error.code}<br>
+              <strong>Detalhes:</strong> ${error.details || 'N/A'}
+            `;
           }
           console.error("Erro Supabase:", error);
         } else {
-          debugInfo.innerHTML = "Status: <span style='color: green;'>✓ Conectado ao Supabase</span>";
-          atualizarDados();
+          updateConnectionStatus("connected", "✓ Conectado ao Supabase com sucesso");
+          debugDetails.innerHTML = `
+            <strong>Status:</strong> Conectado<br>
+            <strong>URL:</strong> ${SUPABASE_URL}<br>
+            <strong>Tabelas:</strong> Acessíveis
+          `;
+          await atualizarDados();
         }
       } catch (error) {
-        console.error(error);
-        debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO CRÍTICO: ${error.message}</span>`;
+        console.error("Erro crítico:", error);
+        updateConnectionStatus("error", "ERRO CRÍTICO: " + error.message);
+        debugDetails.textContent = "Erro crítico: " + error.message;
       }
     }
 
@@ -367,6 +443,11 @@
 
     // Buscar crianças
     async function buscarCriancas() {
+      if (!isConnected) {
+        mostrarNotificacao("Sistema offline. Verifique a conexão.", "error");
+        return;
+      }
+
       const query = codigoInput.value.trim();
       if (query.length < 1) {
         searchResults.style.display = 'none';
@@ -374,7 +455,7 @@
       }
 
       try {
-        const { data: criancas, error } = await window.supabase
+        const { data: criancas, error } = await supabase
           .from('criancas')
           .select('id, codigo')
           .ilike('codigo', `%${query}%`)
@@ -401,6 +482,7 @@
         }
       } catch (error) {
         console.error('Erro busca:', error);
+        mostrarNotificacao("Erro ao buscar crianças", "error");
       }
     }
 
@@ -435,6 +517,11 @@
     }
 
     async function registrar() {
+      if (!isConnected) {
+        mostrarNotificacao("Sistema offline. Verifique a conexão.", "error");
+        return;
+      }
+
       const codigo = codigoInput.value.trim();
       const acao = document.getElementById("acao").value;
       const professor = professorInput.value.trim();
@@ -443,14 +530,14 @@
 
       // Tenta achar ID se não tiver selecionado da lista
       if (!currentCriancaId) {
-         const { data } = await window.supabase.from('criancas').select('id').eq('codigo', codigo).maybeSingle();
+         const { data } = await supabase.from('criancas').select('id').eq('codigo', codigo).maybeSingle();
          if(data) currentCriancaId = data.id;
       }
 
       // Verifica status
       let jaPresente = false;
       if (currentCriancaId) {
-        const { data } = await window.supabase.from('status_presenca').select('presente').eq('crianca_id', currentCriancaId).maybeSingle();
+        const { data } = await supabase.from('status_presenca').select('presente').eq('crianca_id', currentCriancaId).maybeSingle();
         if (data && data.presente) jaPresente = true;
       }
 
@@ -471,22 +558,22 @@
         let cid = currentCriancaId;
         if (!cid) {
           // Tenta buscar de novo
-          const { data: existe } = await window.supabase.from('criancas').select('id').eq('codigo', codigo).maybeSingle();
+          const { data: existe } = await supabase.from('criancas').select('id').eq('codigo', codigo).maybeSingle();
           if (existe) {
             cid = existe.id;
           } else {
             // Cria
-            const { data: nova, error: errCriar } = await window.supabase.from('criancas').insert([{ codigo }]).select().single();
+            const { data: nova, error: errCriar } = await supabase.from('criancas').insert([{ codigo }]).select().single();
             if (errCriar) throw errCriar;
             cid = nova.id;
             // Cria status inicial
-            await window.supabase.from('status_presenca').insert([{ crianca_id: cid, presente: false }]);
+            await supabase.from('status_presenca').insert([{ crianca_id: cid, presente: false }]);
           }
         }
 
         // 2. Registrar Histórico
         const now = new Date();
-        const { error: errReg } = await window.supabase.from('registros').insert([{
+        const { error: errReg } = await supabase.from('registros').insert([{
           crianca_id: cid,
           acao: acao,
           professor: professor,
@@ -496,7 +583,7 @@
         if (errReg) throw errReg;
 
         // 3. Atualizar Status
-        const { error: errStat } = await window.supabase.from('status_presenca').upsert({
+        const { error: errStat } = await supabase.from('status_presenca').upsert({
           crianca_id: cid,
           presente: acao === 'entrada',
           ultima_atualizacao: now.toISOString()
@@ -522,94 +609,136 @@
     }
 
     async function atualizarDados() {
+      if (!isConnected) return;
+      
       await Promise.all([atualizarStats(), atualizarTabela(), atualizarStatusList()]);
     }
 
     async function atualizarStats() {
-      const { count: c1 } = await window.supabase.from('criancas').select('*', { count: 'exact', head: true });
-      const { count: c2 } = await window.supabase.from('status_presenca').select('*', { count: 'exact', head: true }).eq('presente', true);
-      const { count: c3 } = await window.supabase.from('registros').select('*', { count: 'exact', head: true });
-      
-      document.getElementById('total-criancas').textContent = c1 || 0;
-      document.getElementById('criancas-presentes').textContent = c2 || 0;
-      document.getElementById('total-registros').textContent = c3 || 0;
+      try {
+        const { count: c1 } = await supabase.from('criancas').select('*', { count: 'exact', head: true });
+        const { count: c2 } = await supabase.from('status_presenca').select('*', { count: 'exact', head: true }).eq('presente', true);
+        const { count: c3 } = await supabase.from('registros').select('*', { count: 'exact', head: true });
+        
+        document.getElementById('total-criancas').textContent = c1 || 0;
+        document.getElementById('criancas-presentes').textContent = c2 || 0;
+        document.getElementById('total-registros').textContent = c3 || 0;
+      } catch (error) {
+        console.error("Erro ao atualizar stats:", error);
+      }
     }
 
     async function atualizarTabela(filtros = {}) {
-      let q = window.supabase.from('registros').select('*, criancas(codigo)').order('created_at', { ascending: false }).limit(50);
-      
-      if(filtros.data) q = q.eq('data_registro', filtros.data);
-      if(filtros.acao) q = q.eq('acao', filtros.acao);
-      
-      const { data } = await q;
-      
-      tabela.innerHTML = '';
-      if(!data || data.length === 0) {
-        tabela.innerHTML = '<tr><td colspan="5" class="empty-state">Sem registros recentes</td></tr>';
-        return;
-      }
+      try {
+        let q = supabase.from('registros').select('*, criancas(codigo)').order('created_at', { ascending: false }).limit(50);
+        
+        if(filtros.data) q = q.eq('data_registro', filtros.data);
+        if(filtros.acao) q = q.eq('acao', filtros.acao);
+        
+        const { data, error } = await q;
+        
+        if (error) throw error;
+        
+        tabela.innerHTML = '';
+        if(!data || data.length === 0) {
+          tabela.innerHTML = '<tr><td colspan="5" class="empty-state">Sem registros recentes</td></tr>';
+          return;
+        }
 
-      // Filtro de código no cliente (se necessário) ou via ID se fosse complexo
-      let lista = data;
-      if(filtros.codigo) {
-        lista = data.filter(r => r.criancas?.codigo.includes(filtros.codigo));
-      }
+        // Filtro de código no cliente (se necessário) ou via ID se fosse complexo
+        let lista = data;
+        if(filtros.codigo) {
+          lista = data.filter(r => r.criancas?.codigo.includes(filtros.codigo));
+        }
 
-      lista.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.criancas?.codigo || '?'}</td>
-          <td><span class="badge ${r.acao==='entrada'?'badge-success':'badge-danger'}">${r.acao}</span></td>
-          <td>${r.data_registro}</td>
-          <td>${r.hora_registro}</td>
-          <td>${r.professor}</td>
-        `;
-        tabela.appendChild(tr);
-      });
+        lista.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.criancas?.codigo || '?'}</td>
+            <td><span class="badge ${r.acao==='entrada'?'badge-success':'badge-danger'}">${r.acao}</span></td>
+            <td>${r.data_registro}</td>
+            <td>${r.hora_registro}</td>
+            <td>${r.professor}</td>
+          `;
+          tabela.appendChild(tr);
+        });
+      } catch (error) {
+        console.error("Erro ao atualizar tabela:", error);
+        tabela.innerHTML = '<tr><td colspan="5" class="empty-state">Erro ao carregar registros</td></tr>';
+      }
     }
 
     async function atualizarStatusList() {
-      const { data } = await window.supabase.from('status_presenca').select('*, criancas(codigo)').order('ultima_atualizacao', { ascending: false });
-      statusContainer.innerHTML = '';
-      
-      if(!data || data.length === 0) {
-        statusContainer.innerHTML = '<div class="empty-state"><p>Ninguém registrado</p></div>';
+      try {
+        const { data, error } = await supabase.from('status_presenca').select('*, criancas(codigo)').order('ultima_atualizacao', { ascending: false });
+        
+        if (error) throw error;
+        
+        statusContainer.innerHTML = '';
+        
+        if(!data || data.length === 0) {
+          statusContainer.innerHTML = '<div class="empty-state"><p>Ninguém registrado</p></div>';
+          return;
+        }
+
+        const presentes = data.filter(x => x.presente);
+        
+        if(presentes.length === 0) {
+          statusContainer.innerHTML = '<div class="empty-state"><p>Ninguém presente agora</p></div>';
+          return;
+        }
+
+        presentes.forEach(p => {
+          const div = document.createElement('div');
+          div.style.cssText = "padding:10px; background:#f0f7ff; margin-bottom:5px; border-radius:8px; display:flex; justify-content:space-between;";
+          div.innerHTML = `
+            <strong>${p.criancas?.codigo}</strong>
+            <span class="badge badge-success">Presente</span>
+          `;
+          statusContainer.appendChild(div);
+        });
+      } catch (error) {
+        console.error("Erro ao atualizar status:", error);
+        statusContainer.innerHTML = '<div class="empty-state"><p>Erro ao carregar status</p></div>';
+      }
+    }
+
+    function registrarEntradaRapida() { 
+      if (!isConnected) {
+        mostrarNotificacao("Sistema offline. Verifique a conexão.", "error");
         return;
       }
-
-      const presentes = data.filter(x => x.presente);
-      
-      if(presentes.length === 0) {
-        statusContainer.innerHTML = '<div class="empty-state"><p>Ninguém presente agora</p></div>';
+      document.getElementById('acao').value = 'entrada'; 
+      registrar(); 
+    }
+    
+    function registrarSaidaRapida() { 
+      if (!isConnected) {
+        mostrarNotificacao("Sistema offline. Verifique a conexão.", "error");
         return;
       }
-
-      presentes.forEach(p => {
-        const div = document.createElement('div');
-        div.style.cssText = "padding:10px; background:#f0f7ff; margin-bottom:5px; border-radius:8px; display:flex; justify-content:space-between;";
-        div.innerHTML = `
-          <strong>${p.criancas?.codigo}</strong>
-          <span class="badge badge-success">Presente</span>
-        `;
-        statusContainer.appendChild(div);
+      document.getElementById('acao').value = 'saida'; 
+      registrar(); 
+    }
+    
+    function filtrarRegistros() {
+      if (!isConnected) {
+        mostrarNotificacao("Sistema offline. Verifique a conexão.", "error");
+        return;
+      }
+      atualizarTabela({
+        data: document.getElementById('filtrar-data').value,
+        codigo: document.getElementById('filtrar-crianca').value,
+        acao: document.getElementById('filtrar-acao').value
       });
     }
 
-    function registrarEntradaRapida() { document.getElementById('acao').value = 'entrada'; registrar(); }
-    function registrarSaidaRapida() { document.getElementById('acao').value = 'saida'; registrar(); }
-    
-    function filtrarRegistros() {
-       atualizarTabela({
-         data: document.getElementById('filtrar-data').value,
-         codigo: document.getElementById('filtrar-crianca').value,
-         acao: document.getElementById('filtrar-acao').value
-       });
-    }
+    // Tentar reconectar se houver problema
+    setInterval(() => {
+      if (!isConnected) {
+        testarConexao();
+      }
+    }, 10000); // Tenta a cada 10 segundos
   </script>
 </body>
 </html>
-```
-
-
-
-
