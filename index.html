@@ -6,21 +6,36 @@
   <title>Controle Infantil - Sistema de Entrada e Saída</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script type="module">
-    // Configuração do Supabase usando a sintaxe de importação
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-    
-    // --- CORREÇÃO APLICADA AQUI ---
-    // O valor anterior 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw' estava incorreto.
-    // A URL correta foi extraída da sua supabaseKey.
-    const supabaseUrl = 'https://wzzyxbkhmlfilvlihvzl.supabase.co'
-    // --- FIM DA CORREÇÃO ---
-    
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2NDk0MjMsImV4cCI6MjA1MDIyNTQyM30.IBjKSIm1zp2TuUcWet4VLA_vvrhFc5q'
-    const supabase = createClient(supabaseUrl, supabaseKey)
-    
-    // Tornar o supabase disponível globalmente
+    // Import do Supabase (CDN +esm)
+    // Use a versão +esm para importação como módulo no navegador.
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    // --- ATENÇÃO: substitua estes valores pelos seus valores reais ---
+    // Coloque aqui a URL do seu projeto Supabase (ex: https://abcdabcd.supabase.co)
+    const supabaseUrl = 'https://wzzyxbkhmlfilvlihvvl.supabase.co'
+
+    // Coloque aqui a ANON PUBLIC KEY do seu projeto Supabase.
+    // Nunca coloque a SERVICE ROLE key em código do cliente. Use somente a anon/public key.
+    // Exemplo: const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....'
+    // Se não souber a chave, pegue no painel do Supabase: Settings -> API -> anon public
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTAzNzcsImV4cCI6MjA3ODYyNjM3N30.K_QwwVD20xnlhNvTxb0jdTeH_3LU30W_aDeHquraQg8Y'
+
+    // Se você nao substituiu a chave, avisará no console e não tentará conexão.
+    if (!supabaseUrl || supabaseUrl === 'https://wzzyxbkhmlfilvlihvvl.supabase.co') {
+      console.error('Supabase URL não definido. Substitua supabaseUrl pelo endpoint do seu projeto.');
+    }
+
+    if (!supabaseKey || supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+      console.warn('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTAzNzcsImV4cCI6MjA3ODYyNjM3N30.K_QwwVD20xnlhNvTxb0jdTeH_3LU30W_aDeHquraQg8Y');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false }
+    });
+
+    // Tornar o supabase disponível globalmente para o restante do script
     window.supabase = supabase;
-    
+
     // Inicializar a aplicação quando o DOM estiver carregado
     document.addEventListener('DOMContentLoaded', function() {
       if (window.initApp) {
@@ -29,7 +44,6 @@
     });
   </script>
   <style>
-    /* SEU CSS PERMANECE IGUAL */
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
@@ -44,11 +58,7 @@
       --transition: all 0.3s ease;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -68,403 +78,77 @@
       overflow: hidden;
     }
 
-    header::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
-      background-size: cover;
-    }
+    header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; position: relative; }
+    header p { opacity: 0.9; font-size: 1rem; position: relative; }
 
-    header h1 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-      position: relative;
-    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+    .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .card { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 1.5rem; transition: var(--transition); }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12); }
+    .card h2 { color: var(--primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--light); display:flex; align-items:center; gap:.5rem; }
 
-    header p {
-      opacity: 0.9;
-      font-size: 1rem;
-      position: relative;
-    }
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--dark); }
+    input, select, button { width: 100%; padding: 12px 15px; border-radius: var(--border-radius); border: 1px solid #ddd; font-size: 1rem; transition: var(--transition); }
+    input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2); }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
+    .btn { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 12px 20px; }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .btn-success { background: var(--success); }
+    .btn-success:hover { background: #3ab0d9; }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #e11d74; }
 
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 1.5rem; text-align: center; transition: var(--transition); }
+    .stat-card i { font-size: 2.5rem; margin-bottom: .5rem; color: var(--primary); }
+    .stat-card h3 { font-size: 2rem; margin-bottom: .5rem; color: var(--dark); }
+    .stat-card p { color: var(--gray); font-weight: 500; }
 
-    .card {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 1.5rem;
-      transition: var(--transition);
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: white; border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--box-shadow); }
+    th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: var(--primary); color: white; font-weight: 600; }
+    tr:hover { background-color: #f8f9fa; }
 
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-    }
+    .badge { display: inline-block; padding: 0.35rem 0.65rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-align: center; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
 
-    .card h2 {
-      color: var(--primary);
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid var(--light);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    .filters { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .filter-group { flex:1; min-width:200px; }
+    .actions { display:flex; gap:.5rem; margin-top:1rem; }
+    .actions button { flex:1; }
 
-    .card h2 i {
-      color: var(--secondary);
-    }
+    .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: var(--border-radius); color: white; font-weight: 600; box-shadow: var(--box-shadow); z-index: 1000; transform: translateX(150%); transition: transform 0.4s ease; }
+    .notification.show { transform: translateX(0); }
+    .notification.success { background: var(--success); color: #083344; }
+    .notification.error { background: var(--danger); }
 
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
+    .empty-state { text-align: center; padding: 2rem; color: var(--gray); }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: #ddd; }
 
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--dark);
-    }
+    .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #4361ee; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    input, select, button {
-      width: 100%;
-      padding: 12px 15px;
-      border-radius: var(--border-radius);
-      border: 1px solid #ddd;
-      font-size: 1rem;
-      transition: var(--transition);
-    }
+    @media (max-width:768px) { .dashboard { grid-template-columns: 1fr; } .filters { flex-direction: column; } .filter-group { min-width: 100%; } }
 
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-    }
+    .debug-info { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; color: #666; }
 
-    .btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 12px 20px;
-    }
+    .search-container { position: relative; margin-bottom: 1rem; }
+    .search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: var(--border-radius); max-height: 200px; overflow-y: auto; z-index: 10; box-shadow: var(--box-shadow); display: none; }
+    .search-result-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .search-result-item:hover { background-color: #f0f7ff; }
+    .search-result-item:last-child { border-bottom: none; }
 
-    .btn:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-    }
+    .status-indicator { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; }
+    .status-present { background-color:#10b981; }
+    .status-absent { background-color:#ef4444; }
 
-    .btn-success {
-      background: var(--success);
-    }
-
-    .btn-success:hover {
-      background: #3ab0d9;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-    }
-
-    .btn-danger:hover {
-      background: #e11d74;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 1.5rem;
-      text-align: center;
-      transition: var(--transition);
-    }
-
-    .stat-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .stat-card i {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      color: var(--primary);
-    }
-
-    .stat-card h3 {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-      color: var(--dark);
-    }
-
-    .stat-card p {
-      color: var(--gray);
-      font-weight: 500;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      background: white;
-      border-radius: var(--border-radius);
-      overflow: hidden;
-      box-shadow: var(--box-shadow);
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background: var(--primary);
-      color: white;
-      font-weight: 600;
-    }
-
-    tr:hover {
-      background-color: #f8f9fa;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 0.35rem 0.65rem;
-      border-radius: 50px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .badge-success {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .badge-danger {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .filters {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-group {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-
-    .actions button {
-      flex: 1;
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 1rem 1.5rem;
-      border-radius: var(--border-radius);
-      color: white;
-      font-weight: 600;
-      box-shadow: var(--box-shadow);
-      z-index: 1000;
-      transform: translateX(150%);
-      transition: transform 0.4s ease;
-    }
-
-    .notification.show {
-      transform: translateX(0);
-    }
-
-    .notification.success {
-      background: var(--success);
-    }
-
-    .notification.error {
-      background: var(--danger);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: var(--gray);
-    }
-
-    .empty-state i {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      color: #ddd;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #4361ee;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
-      
-      .filters {
-        flex-direction: column;
-      }
-      
-      .filter-group {
-        min-width: 100%;
-      }
-    }
-
-    .debug-info {
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 12px;
-      color: #666;
-    }
-
-    /* NOVOS ESTILOS PARA AS MELHORIAS */
-    .search-container {
-      position: relative;
-      margin-bottom: 1rem;
-    }
-
-    .search-results {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: var(--border-radius);
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 10;
-      box-shadow: var(--box-shadow);
-      display: none;
-    }
-
-    .search-result-item {
-      padding: 10px 15px;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-    }
-
-    .search-result-item:hover {
-      background-color: #f0f7ff;
-    }
-
-    .search-result-item:last-child {
-      border-bottom: none;
-    }
-
-    .status-indicator {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-
-    .status-present {
-      background-color: #10b981;
-    }
-
-    .status-absent {
-      background-color: #ef4444;
-    }
-
-    .confirmation-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .confirmation-content {
-      background: white;
-      padding: 2rem;
-      border-radius: var(--border-radius);
-      max-width: 500px;
-      width: 90%;
-      box-shadow: var(--box-shadow);
-    }
-
-    .confirmation-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .confirmation-buttons button {
-      flex: 1;
-    }
-
-    .input-error {
-      border-color: var(--danger) !important;
-      box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.2) !important;
-    }
-
-    .error-message {
-      color: var(--danger);
-      font-size: 0.85rem;
-      margin-top: 5px;
-      display: none;
-    }
+    .confirmation-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; }
+    .confirmation-content { background:white; padding:2rem; border-radius:var(--border-radius); max-width:500px; width:90%; box-shadow: var(--box-shadow); }
+    .confirmation-buttons { display:flex; gap:1rem; margin-top:1.5rem; }
+    .input-error { border-color: var(--danger) !important; box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.2) !important; }
+    .error-message { color: var(--danger); font-size: 0.85rem; margin-top:5px; display:none; }
   </style>
 </head>
 <body>
@@ -544,7 +228,7 @@
 
     <section class="card">
       <h2><i class="fas fa-history"></i> Histórico de Presenças</h2>
-      
+
       <div class="filters">
         <div class="filter-group">
           <label for="filtrar-data">Filtrar por Data:</label>
@@ -563,7 +247,7 @@
           </select>
         </div>
       </div>
-      
+
       <table id="tabela">
         <thead>
           <tr>
@@ -624,15 +308,15 @@
     window.initApp = function() {
       testarConexao();
       codigoInput.focus();
-      
+
       // Configurar eventos de busca
-      codigoInput.addEventListener('input', buscarCriancas);
-      
+      codigoInput.addEventListener('input', debounce(buscarCriancas, 200));
+
       // Configurar modal de confirmação
       confirmationCancel.addEventListener('click', () => {
         confirmationModal.style.display = 'none';
       });
-      
+
       // Fechar modal ao clicar fora
       confirmationModal.addEventListener('click', (e) => {
         if (e.target === confirmationModal) {
@@ -641,28 +325,39 @@
       });
     };
 
+    // Debounce utilitário para não sobrecarregar buscas
+    function debounce(fn, wait) {
+      let t;
+      return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
     // Testar conexão com Supabase
     async function testarConexao() {
       try {
         debugInfo.textContent = "Status: Testando conexão com o banco...";
-        
-        // Testa se consegue acessar as tabelas
-        const { data, error } = await window.supabase
+
+        if (!window.supabase || !window.supabase.from) {
+          debugInfo.innerHTML = "Status: <span style='color: red;'>ERRO: Supabase não inicializado (verifique URL/chave)</span>";
+          return;
+        }
+
+        // Faz uma consulta simples (head: true) para checar acesso à tabela
+        const { error } = await window.supabase
           .from('criancas')
-          .select('count')
-          .limit(1);
+          .select('*', { head: true });
 
         if (error) {
-          if (error.code === '42P01') {
-            debugInfo.innerHTML = "Status: <span style='color: red;'>ERRO: Tabelas não encontradas. Execute o SQL no Supabase.</span>";
-          } else {
-            debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
-          }
+          debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
         } else {
           debugInfo.innerHTML = "Status: <span style='color: green;'>✓ Conectado ao Supabase</span>";
-          atualizarDados();
+          await atualizarDados();
         }
       } catch (error) {
+        // Erro de rede (ex: Failed to fetch) geralmente cai aqui
+        console.error(error);
         debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
       }
     }
@@ -671,7 +366,7 @@
     function mostrarNotificacao(mensagem, tipo = 'success') {
       notification.textContent = mensagem;
       notification.className = `notification ${tipo} show`;
-      
+
       setTimeout(() => {
         notification.classList.remove('show');
       }, 3000);
@@ -692,24 +387,23 @@
     // Buscar crianças por código
     async function buscarCriancas() {
       const query = codigoInput.value.trim();
-      
+
       if (query.length < 1) {
         searchResults.style.display = 'none';
         return;
       }
-      
+
       try {
         const { data: criancas, error } = await window.supabase
           .from('criancas')
           .select('id, codigo')
           .ilike('codigo', `%${query}%`)
-          .limit(5);
-          
+          .limit(8);
+
         if (error) throw error;
-        
-        // Limpar resultados anteriores
+
         searchResults.innerHTML = '';
-        
+
         if (criancas && criancas.length > 0) {
           criancas.forEach(crianca => {
             const item = document.createElement('div');
@@ -735,15 +429,11 @@
     // Validar formulário
     function validarFormulario() {
       let valido = true;
-      
+
       // Limpar erros anteriores
-      document.querySelectorAll('.input-error').forEach(el => {
-        el.classList.remove('input-error');
-      });
-      document.querySelectorAll('.error-message').forEach(el => {
-        el.style.display = 'none';
-      });
-      
+      document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+      document.querySelectorAll('.error-message').forEach(el => { el.style.display = 'none'; el.textContent = ''; });
+
       // Validar código
       if (!codigoInput.value.trim()) {
         codigoInput.classList.add('input-error');
@@ -751,7 +441,7 @@
         document.getElementById('codigo-error').style.display = 'block';
         valido = false;
       }
-      
+
       // Validar professor
       if (!professorInput.value.trim()) {
         professorInput.classList.add('input-error');
@@ -759,7 +449,7 @@
         document.getElementById('professor-error').style.display = 'block';
         valido = false;
       }
-      
+
       return valido;
     }
 
@@ -768,8 +458,8 @@
       confirmationTitle.textContent = titulo;
       confirmationMessage.textContent = mensagem;
       confirmationModal.style.display = 'flex';
-      
-      // Configurar evento de confirmação
+
+      // Configurar evento de confirmação (substitui handler anterior)
       confirmationConfirm.onclick = () => {
         confirmationModal.style.display = 'none';
         callback();
@@ -786,18 +476,42 @@
         return;
       }
 
-      // Verificar se a criança já está presente/ausente
       try {
-        const { data: status, error } = await window.supabase
-          .from('status_presenca')
-          .select('presente')
-          .eq('crianca_id', currentCriancaId)
-          .single();
-          
-        if (error && error.code !== 'PGRST116') throw error;
-        
+        // Se não tivermos currentCriancaId, tentaremos localizar pela coluna codigo
+        let criancaId = currentCriancaId;
+        if (!criancaId) {
+          const { data: existing, error: findErr } = await window.supabase
+            .from('criancas')
+            .select('id')
+            .eq('codigo', codigo)
+            .maybeSingle();
+
+          if (findErr) {
+            // continue, mas mostre erro
+            console.warn('Erro ao buscar criança:', findErr.message);
+          } else if (existing && existing.id) {
+            criancaId = existing.id;
+            currentCriancaId = criancaId;
+          }
+        }
+
+        // Verificar status atual (se existir)
+        let status = null;
+        if (criancaId) {
+          const { data: st, error: stErr } = await window.supabase
+            .from('status_presenca')
+            .select('presente')
+            .eq('crianca_id', criancaId)
+            .maybeSingle();
+
+          if (stErr) {
+            console.warn('Erro ao checar status:', stErr.message);
+          } else {
+            status = st;
+          }
+        }
+
         let mensagemConfirmacao = '';
-        
         if (acao === 'entrada') {
           if (status && status.presente) {
             mensagemConfirmacao = `A criança ${codigo} já está presente. Deseja registrar uma nova entrada?`;
@@ -811,17 +525,11 @@
             mensagemConfirmacao = `Confirmar saída da criança ${codigo}?`;
           }
         }
-        
-        mostrarConfirmacao(
-          'Confirmar Registro',
-          mensagemConfirmacao,
-          () => realizarRegistro(codigo, acao, professor)
-        );
-        
+
+        mostrarConfirmacao('Confirmar Registro', mensagemConfirmacao, () => realizarRegistro(codigo, acao, professor));
       } catch (error) {
-        console.error('Erro ao verificar status:', error);
-        // Se houver erro na verificação, prosseguir com o registro
-        realizarRegistro(codigo, acao, professor);
+        console.error('Erro ao preparar registro:', error);
+        mostrarNotificacao('Erro ao preparar registro: ' + error.message, 'error');
       }
     }
 
@@ -832,52 +540,49 @@
       try {
         debugInfo.textContent = "Status: Processando registro...";
 
-        // 1. Buscar ou criar criança
-        let criancaId = await obterOuCriarCrianca(codigo);
-        
-        if (!criancaId) {
-          throw new Error('Erro ao criar/obter criança');
-        }
+        // 1. Obter ou criar criança
+        const criancaId = await obterOuCriarCrianca(codigo);
+        if (!criancaId) throw new Error('Erro ao criar/obter criança');
 
         // 2. Inserir registro
+        const today = new Date();
+        const dataRegistro = today.toISOString().split('T')[0];
+        const horaRegistro = today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
         const { error: registroError } = await window.supabase
           .from('registros')
           .insert([{
             crianca_id: criancaId,
             acao: acao,
             professor: professor,
-            data_registro: new Date().toISOString().split('T')[0],
-            hora_registro: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            data_registro: dataRegistro,
+            hora_registro: horaRegistro
           }]);
 
         if (registroError) throw registroError;
 
-        // 3. Atualizar status de presença
+        // 3. Atualizar status de presença (upsert)
         const { error: statusError } = await window.supabase
           .from('status_presenca')
           .upsert({
             crianca_id: criancaId,
             presente: acao === 'entrada',
             ultima_atualizacao: new Date().toISOString()
-          }, {
-            onConflict: 'crianca_id'
-          });
+          }, { onConflict: 'crianca_id' });
 
         if (statusError) throw statusError;
 
-        // Sucesso!
         mostrarNotificacao(`${acao === 'entrada' ? 'Entrada' : 'Saída'} registrada para criança ${codigo}`);
         debugInfo.innerHTML = "Status: <span style='color: green;'>✓ Registro salvo com sucesso</span>";
-        
-        // Limpar campos e atualizar interface
+
+        // Limpar e atualizar UI
         codigoInput.value = "";
         professorInput.value = "";
         searchResults.style.display = "none";
         currentCriancaId = null;
         codigoInput.focus();
-        
-        await atualizarDados();
 
+        await atualizarDados();
       } catch (error) {
         console.error('Erro:', error);
         debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
@@ -890,40 +595,38 @@
     // Função auxiliar para obter ou criar criança
     async function obterOuCriarCrianca(codigo) {
       // Se já temos o ID, retornar
-      if (currentCriancaId) {
-        return currentCriancaId;
-      }
-      
-      // Primeiro, tenta encontrar a criança
+      if (currentCriancaId) return currentCriancaId;
+
+      // Tentar encontrar a criança
       const { data: criancaExistente, error: findError } = await window.supabase
         .from('criancas')
         .select('id')
         .eq('codigo', codigo)
-        .single();
+        .maybeSingle();
 
-      if (findError && findError.code !== 'PGRST116') {
-        throw findError;
-      }
+      if (findError) throw findError;
 
-      // Se encontrou, retorna o ID
-      if (criancaExistente) {
+      if (criancaExistente && criancaExistente.id) {
+        currentCriancaId = criancaExistente.id;
         return criancaExistente.id;
       }
 
       // Se não encontrou, cria nova criança
       const { data: novaCrianca, error: createError } = await window.supabase
         .from('criancas')
-        .insert([{ codigo: codigo }])
+        .insert([{ codigo }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (createError) throw createError;
+      if (!novaCrianca || !novaCrianca.id) throw new Error('Não foi possível criar a criança');
 
-      // Cria registro inicial de status
+      // Cria registro inicial de status (caso tabela exista)
       await window.supabase
         .from('status_presenca')
         .insert([{ crianca_id: novaCrianca.id, presente: false }]);
 
+      currentCriancaId = novaCrianca.id;
       return novaCrianca.id;
     }
 
@@ -939,26 +642,22 @@
     // Atualizar estatísticas
     async function atualizarEstatisticas() {
       try {
-        // Total de crianças
-        const { count: totalCriancas } = await window.supabase
+        const { count: totalCriancas, error: err1 } = await window.supabase
           .from('criancas')
           .select('*', { count: 'exact', head: true });
 
-        // Crianças presentes
-        const { count: criancasPresentes } = await window.supabase
+        const { count: criancasPresentes, error: err2 } = await window.supabase
           .from('status_presenca')
           .select('*', { count: 'exact', head: true })
           .eq('presente', true);
 
-        // Total de registros
-        const { count: totalRegistros } = await window.supabase
+        const { count: totalRegistros, error: err3 } = await window.supabase
           .from('registros')
           .select('*', { count: 'exact', head: true });
 
         document.getElementById('total-criancas').textContent = totalCriancas || 0;
         document.getElementById('criancas-presentes').textContent = criancasPresentes || 0;
         document.getElementById('total-registros').textContent = totalRegistros || 0;
-
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
       }
@@ -967,19 +666,25 @@
     // Atualizar tabela de histórico
     async function atualizarTabela(filtros = {}) {
       try {
+        // Base da query
         let query = window.supabase
           .from('registros')
           .select(`
-            *,
+            id,
+            acao,
+            data_registro,
+            hora_registro,
+            professor,
             criancas (codigo)
           `)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(200);
 
         // Aplicar filtros
         if (filtros.data) {
           query = query.eq('data_registro', filtros.data);
         }
-        
+
         if (filtros.codigo) {
           const { data: criancasFiltradas } = await window.supabase
             .from('criancas')
@@ -990,167 +695,101 @@
             const ids = criancasFiltradas.map(c => c.id);
             query = query.in('crianca_id', ids);
           } else {
-            // Se não encontrou crianças, força resultado vazio
-            query = query.eq('crianca_id', -1);
+            // força vazio
+            tabela.innerHTML = `<tr><td colspan="6" class="empty-state"><p>Nenhum registro encontrado</p></td></tr>`;
+            return;
           }
         }
-        
+
         if (filtros.acao) {
-          query = query.eq('acao', filtros.aco);
+          query = query.eq('acao', filtros.acao);
         }
 
         const { data: registros, error } = await query;
 
         if (error) throw error;
 
-        // Limpar e preencher tabela
-        tabela.innerHTML = '';
-        
         if (!registros || registros.length === 0) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td colspan="6" class="empty-state"><i class="fas fa-inbox"></i><p>Nenhum registro encontrado</p></td>`;
-          tabela.appendChild(tr);
+          tabela.innerHTML = `<tr><td colspan="6" class="empty-state"><p>Nenhum registro encontrado</p></td></tr>`;
           return;
         }
 
-        registros.forEach(registro => {
+        tabela.innerHTML = '';
+        registros.forEach(r => {
           const tr = document.createElement('tr');
-          const badgeClass = registro.acao === 'entrada' ? 'badge-success' : 'badge-danger';
-          const acaoTexto = registro.acao === 'entrada' ? 'Entrada' : 'Saída';
-          
           tr.innerHTML = `
-            <td>${registro.criancas.codigo}</td>
-            <td><span class="badge ${badgeClass}">${acaoTexto}</span></td>
-            <td>${registro.data_registro}</td>
-            <td>${registro.hora_registro}</td>
-            <td>${registro.professor}</td>
+            <td>${r.criancas?.codigo ?? '-'}</td>
+            <td>${r.acao}</td>
+            <td>${r.data_registro ?? '-'}</td>
+            <td>${r.hora_registro ?? '-'}</td>
+            <td>${r.professor ?? '-'}</td>
             <td>
-              <button class="btn btn-danger" onclick="excluirRegistro(${registro.id})" style="padding: 5px 10px; font-size: 0.8rem;">
-                <i class="fas fa-trash"></i>
-              </button>
+              <button class="btn" onclick="editarRegistro(${r.id})"><i class="fas fa-edit"></i></button>
             </td>
           `;
           tabela.appendChild(tr);
         });
-
       } catch (error) {
         console.error('Erro ao carregar tabela:', error);
-        mostrarNotificacao('Erro ao carregar registros', 'error');
+        tabela.innerHTML = `<tr><td colspan="6" class="empty-state"><p>Erro ao carregar registros</p></td></tr>`;
       }
     }
 
-    // Atualizar status das crianças presentes
+    // Atualizar status atual (lista de crianças com seu status)
     async function atualizarStatus() {
       try {
-        const { data: status, error } = await window.supabase
+        const { data: statusList, error } = await window.supabase
           .from('status_presenca')
-          .select(`
-            crianca_id,
-            presente,
-            criancas (codigo)
-          `);
+          .select('crianca_id, presente, ultima_atualizacao, criancas (codigo)')
+          .order('crianca_id', { ascending: true });
 
         if (error) throw error;
 
-        statusContainer.innerHTML = '';
-        
-        if (!status || status.length === 0) {
-          statusContainer.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-child"></i>
-              <p>Nenhuma criança registrada</p>
-            </div>
-          `;
+        if (!statusList || statusList.length === 0) {
+          statusContainer.innerHTML = `<div class="empty-state"><i class="fas fa-child"></i><p>Nenhum status disponível</p></div>`;
           return;
-        }
-        
-        // Separar presentes e ausentes
-        const presentes = status.filter(item => item.presente);
-        const ausentes = status.filter(item => !item.presente);
-        
-        if (presentes.length === 0) {
-          statusContainer.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-child"></i>
-              <p>Nenhuma criança presente no momento</p>
-            </div>
-          `;
-          return;
-        }
-        
-        // Adicionar título
-        const titulo = document.createElement('h3');
-        titulo.textContent = 'Crianças Presentes';
-        titulo.style.marginBottom = '1rem';
-        titulo.style.color = 'var(--primary)';
-        statusContainer.appendChild(titulo);
-        
-        // Listar crianças presentes
-        presentes.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'status-item';
-          div.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #f0f7ff;
-            border-radius: 8px;
-            margin-bottom: 8px;
-          `;
-          
-          div.innerHTML = `
-            <div>
-              <span class="status-indicator status-present"></span>
-              <strong>Criança ${item.criancas.codigo}</strong>
-            </div>
-            <span class="badge badge-success">Presente</span>
-          `;
-          
-          statusContainer.appendChild(div);
-        });
-        
-        // Adicionar seção de ausentes se houver
-        if (ausentes.length > 0) {
-          const tituloAusentes = document.createElement('h3');
-          tituloAusentes.textContent = 'Crianças Ausentes';
-          tituloAusentes.style.marginTop = '1.5rem';
-          tituloAusentes.style.marginBottom = '1rem';
-          tituloAusentes.style.color = 'var(--gray)';
-          statusContainer.appendChild(tituloAusentes);
-          
-          ausentes.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'status-item';
-            div.style.cssText = `
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 10px;
-              background: #f8f9fa;
-              border-radius: 8px;
-              margin-bottom: 8px;
-              opacity: 0.7;
-            `;
-            
-            div.innerHTML = `
-              <div>
-                <span class="status-indicator status-absent"></span>
-                <strong>Criança ${item.criancas.codigo}</strong>
-              </div>
-              <span class="badge badge-danger">Ausente</span>
-            `;
-            
-            statusContainer.appendChild(div);
-          });
         }
 
+        statusContainer.innerHTML = '';
+        statusList.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.style.marginBottom = '10px';
+          div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>${s.criancas?.codigo ?? '—'}</strong><br/>
+                <small style="color:var(--gray)">Atualizado: ${s.ultima_atualizacao ? new Date(s.ultima_atualizacao).toLocaleString() : '-'}</small>
+              </div>
+              <div>
+                <span class="status-indicator ${s.presente ? 'status-present' : 'status-absent'}"></span>
+                <span>${s.presente ? 'Presente' : 'Ausente'}</span>
+              </div>
+            </div>
+          `;
+          statusContainer.appendChild(div);
+        });
       } catch (error) {
         console.error('Erro ao carregar status:', error);
+        statusContainer.innerHTML = `<div class="empty-state"><p>Erro ao carregar status</p></div>`;
       }
     }
 
-    // Funções de registro rápido
+    // Funções utilitárias / placeholders
+    function editarRegistro(id) {
+      mostrarNotificacao('Editar registro: ' + id, 'success');
+    }
+
+    function filtrarRegistros() {
+      const filtros = {
+        data: document.getElementById('filtrar-data').value || undefined,
+        codigo: document.getElementById('filtrar-crianca').value.trim() || undefined,
+        acao: document.getElementById('filtrar-acao').value || undefined
+      };
+      atualizarTabela(filtros);
+    }
+
+    // Funções de entrada/saída rápidas
     function registrarEntradaRapida() {
       document.getElementById('acao').value = 'entrada';
       registrar();
@@ -1160,85 +799,6 @@
       document.getElementById('acao').value = 'saida';
       registrar();
     }
-
-    // Filtrar registros
-    function filtrarRegistros() {
-      const filtros = {
-        data: document.getElementById('filtrar-data').value,
-        codigo: document.getElementById('filtrar-crianca').value,
-        acao: document.getElementById('filtrar-acao').value
-      };
-      
-      atualizarTabela(filtros);
-    }
-
-    // Excluir registro
-    async function excluirRegistro(id) {
-      mostrarConfirmacao(
-        'Excluir Registro',
-        'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.',
-        () => realizarExclusao(id)
-      );
-    }
-
-    // Realizar exclusão após confirmação
-    async function realizarExclusao(id) {
-      try {
-        // Primeiro, obtém o registro para saber qual criança e ação
-        const { data: registro, error: fetchError } = await window.supabase
-          .from('registros')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        // Exclui o registro
-        const { error: deleteError } = await window.supabase
-          .from('registros')
-          .delete()
-          .eq('id', id);
-
-        if (deleteError) throw deleteError;
-
-        // Se era uma entrada, verifica se precisa atualizar o status
-        if (registro.acao === 'entrada') {
-          // Verifica se há outra entrada mais recente para a mesma criança
-          const { data: ultimoRegistro } = await window.supabase
-            .from('registros')
-            .select('acao')
-            .eq('crianca_id', registro.crianca_id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          // Atualiza status baseado no último registro
-          const presente = ultimoRegistro && ultimoRegistro.acao === 'entrada';
-          
-          await window.supabase
-            .from('status_presenca')
-            .update({ presente: presente })
-            .eq('crianca_id', registro.crianca_id);
-        }
-
-        mostrarNotificacao('Registro excluído com sucesso!');
-        await atualizarDados();
-
-      } catch (error) {
-        console.error('Erro ao excluir:', error);
-        mostrarNotificacao('Erro ao excluir registro', 'error');
-      }
-    }
-
-    // Permitir pressionar Enter para registrar
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && (
-        document.activeElement.id === 'codigo' || 
-        document.activeElement.id === 'professor'
-      )) {
-        registrar();
-      }
-    });
   </script>
 </body>
 </html>
