@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
+    /* SEU CSS PERMANECE IGUAL */
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
@@ -338,6 +339,15 @@
         min-width: 100%;
       }
     }
+
+    .debug-info {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -393,6 +403,9 @@
           <button class="btn btn-danger" onclick="registrarSaidaRapida()">
             <i class="fas fa-door-closed"></i> Saída Rápida
           </button>
+        </div>
+        <div class="debug-info" id="debug-info">
+          Status: Conectando ao banco de dados...
         </div>
       </section>
 
@@ -455,7 +468,7 @@
   <div id="notification" class="notification"></div>
 
   <script>
-    // Configuração do Supabase - CREDENCIAIS ATUALIZADAS
+    // Configuração do Supabase
     const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2NDk0MjMsImV4cCI6MjA1MDIyNTQyM30.IBjKSIm1zp2TuUcWet4VLA_vvrhFc5q';
     
@@ -466,12 +479,39 @@
     const statusContainer = document.getElementById("status-container");
     const notification = document.getElementById("notification");
     const btnRegistrar = document.getElementById("btn-registrar");
+    const debugInfo = document.getElementById("debug-info");
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', function() {
-      atualizarDados();
+      testarConexao();
       document.getElementById('codigo').focus();
     });
+
+    // Testar conexão com Supabase
+    async function testarConexao() {
+      try {
+        debugInfo.textContent = "Status: Testando conexão com o banco...";
+        
+        // Testa se consegue acessar as tabelas
+        const { data, error } = await supabase
+          .from('criancas')
+          .select('count')
+          .limit(1);
+
+        if (error) {
+          if (error.code === '42P01') {
+            debugInfo.innerHTML = "Status: <span style='color: red;'>ERRO: Tabelas não encontradas. Execute o SQL no Supabase.</span>";
+          } else {
+            debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
+          }
+        } else {
+          debugInfo.innerHTML = "Status: <span style='color: green;'>✓ Conectado ao Supabase</span>";
+          atualizarDados();
+        }
+      } catch (error) {
+        debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
+      }
+    }
 
     // Função para mostrar notificações
     function mostrarNotificacao(mensagem, tipo = 'success') {
@@ -509,6 +549,8 @@
       toggleLoading(true);
 
       try {
+        debugInfo.textContent = "Status: Processando registro...";
+
         // 1. Buscar ou criar criança
         let criancaId = await obterOuCriarCrianca(codigo);
         
@@ -524,7 +566,7 @@
             acao: acao,
             professor: professor,
             data_registro: new Date().toISOString().split('T')[0],
-            hora_registro: new Date().toTimeString().split(' ')[0]
+            hora_registro: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
           }]);
 
         if (registroError) throw registroError;
@@ -544,6 +586,7 @@
 
         // Sucesso!
         mostrarNotificacao(`${acao.toUpperCase()} registrada para criança ${codigo}`);
+        debugInfo.innerHTML = "Status: <span style='color: green;'>✓ Registro salvo com sucesso</span>";
         
         // Limpar campos e atualizar interface
         document.getElementById("codigo").value = "";
@@ -554,6 +597,7 @@
 
       } catch (error) {
         console.error('Erro:', error);
+        debugInfo.innerHTML = `Status: <span style='color: red;'>ERRO: ${error.message}</span>`;
         mostrarNotificacao("Erro ao registrar: " + error.message, "error");
       } finally {
         toggleLoading(false);
