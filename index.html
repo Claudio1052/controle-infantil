@@ -591,8 +591,16 @@
                 </div>
             </div>
             <div class="input-group" style="margin:20px 0;">
-                <label for="membro-departamentos">Departamentos (separar por vírgula)</label>
-                <input type="text" id="membro-departamentos" class="input-control" placeholder="Ex: Diaconato, Louvor, Infantil">
+                <label for="membro-departamentos">Departamentos</label>
+                <select id="membro-departamentos" class="input-control" multiple>
+                    <option value="Diaconato">Diaconato</option>
+                    <option value="Música">Música</option>
+                    <option value="Infantil">Infantil</option>
+                    <option value="Mídia">Mídia</option>
+                    <option value="Recepção">Recepção</option>
+                    <option value="Jovens">Jovens</option>
+                    <option value="Intercessão">Intercessão</option>
+                </select>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
                 <button type="button" class="btn btn-secondary" onclick="fecharModalMembro()">Cancelar</button>
@@ -760,7 +768,7 @@
     const email = document.getElementById('membro-email').value.trim() || null;
     const fez_rhema = document.getElementById('membro-rhema').value === 'true';
     const escola_ministros = document.getElementById('membro-escola').value === 'true';
-    const deptos = document.getElementById('membro-departamentos').value.split(',').map(s => s.trim()).filter(s => s);
+    const deptos = Array.from(document.getElementById('membro-departamentos').selectedOptions).map(opt => opt.value);
     try {
         let error;
         if (id) {
@@ -812,7 +820,10 @@ function editarMembro(id) {
     document.getElementById('membro-email').value = membro.email || '';
     document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
     document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
-    document.getElementById('membro-departamentos').value = membro.departamentos ? membro.departamentos.join(', ') : '';
+    const select = document.getElementById('membro-departamentos');
+    Array.from(select.options).forEach(opt => {
+        opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
+    });
     document.getElementById('modal-membro').style.display = 'flex';
 }
         async function deletarMembro(id) {
@@ -1049,7 +1060,7 @@ function renderMembros() {
                         <th style="padding:15px;">Idade / Aniversário</th>
                         <th style="padding:15px;">Telefone</th>
                         <th style="padding:15px;">Departamentos</th>
-                        <th style="padding:15px;">Rhema / Ministro</th>
+                        <th style="padding:15px;">Rhema / Escola</th>
                         <th style="padding:15px;">Ações</th>
                     </tr>
                 </thead>
@@ -1077,7 +1088,7 @@ function renderMembros() {
                                 </td>
                                 <td style="padding:15px;">
                                     ${m.fez_rhema ? 'Rhema' : ''}
-                                    ${m.escola_ministros ? 'Ministro' : ''}
+                                    ${m.escola_ministros ? 'Escola' : ''}
                                     ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
                                 </td>
                                 <td style="padding:15px;">
@@ -1220,4 +1231,3 @@ document.getElementById('membro-telefone')?.addEventListener('input', function (
     </script>
 </body>
 </html>
-
