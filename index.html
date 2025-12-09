@@ -1234,531 +1234,542 @@
 
     <div id="toast-container"></div>
 
-    <script>
-        // Configuração SUPABASE (mantida)
-        const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw'; 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <script>
+    // --- 1. CONFIGURAÇÃO SUPABASE ---
+    // Substitua pela sua URL e Key se forem diferentes
+    const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw'; 
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Estado Global Aprimorado
-        let estado = { 
-            cultos: [], 
-            escalas: [], 
-            membros: [], 
-            configs: {
-                theme: 'blue',
-                darkMode: false,
-                animations: true,
-                emailReports: true,
-                autoBackup: true,
-                notifications: []
-            }, 
-            charts: {},
-            stats: {
-                growthData: [],
-                averages: {},
-                trends: {}
-            }
+    // --- 2. ESTADO GLOBAL ---
+    let estado = { 
+        cultos: [], 
+        escalas: [], 
+        membros: [], 
+        configs: {
+            theme: 'blue',
+            darkMode: false,
+            animations: true
+        }, 
+        charts: {}
+    };
+
+    // Cores dos temas
+    const themes = {
+        blue: { primary: '#1a5fb4', gradient: 'linear-gradient(135deg, #1a5fb4 0%, #4a8ad4 100%)' },
+        green: { primary: '#27ae60', gradient: 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)' },
+        purple: { primary: '#9b59b6', gradient: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)' },
+        red: { primary: '#e74c3c', gradient: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)' }
+    };
+
+    // --- 3. INICIALIZAÇÃO ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        cacheDOM();
+        bindEvents();
+        
+        // Verifica conexão
+        await checkConnection();
+        
+        // Carrega dados
+        await carregarDados();
+        
+        // Renderiza Interface Inicial
+        initQuickActions();
+        updateBadges();
+        
+        document.getElementById('loading-overlay').style.display = 'none';
+    });
+
+    // --- 4. FUNÇÕES DE BANCO DE DADOS (CRUD) ---
+
+    async function checkConnection() {
+        const statusEl = document.getElementById('connection-status');
+        statusEl.style.display = 'flex';
+        
+        try {
+            const { count, error } = await supabase.from('cultos').select('*', { count: 'exact', head: true });
+            
+            if (error) throw error;
+            
+            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Supabase Conectado';
+            statusEl.className = 'connection-status status-ok';
+        } catch (e) {
+            console.error("Erro conexão:", e);
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão';
+            statusEl.className = 'connection-status status-error';
+            mostrarToast("Erro ao conectar ao banco de dados.", "error");
+        }
+    }
+
+    async function carregarDados() {
+        try {
+            const [resCultos, resEscalas, resMembros] = await Promise.all([
+                supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
+                supabase.from('escalas').select('*'),
+                supabase.from('membros').select('*').order('nome')
+            ]);
+
+            estado.cultos = resCultos.data || [];
+            estado.escalas = resEscalas.data || [];
+            estado.membros = resMembros.data || [];
+
+            atualizarUI();
+            
+        } catch (err) {
+            console.error(err);
+            mostrarToast('Erro ao carregar dados do servidor.', 'error');
+        }
+    }
+
+    async function salvarCulto(e) {
+        e.preventDefault();
+        
+        // Pega valores do formulário (Ids devem existir no HTML)
+        const novoCulto = {
+            data_culto: document.getElementById('data-culto').value,
+            dia_semana: document.getElementById('dia-semana').value,
+            tipo_culto: document.getElementById('tipo-culto').value,
+            hora_inicio: document.getElementById('hora-inicio').value,
+            hora_termino: document.getElementById('hora-termino').value,
+            tempo_ministerio: parseInt(document.getElementById('tempo-ministerio').value) || 0,
+            homens: parseInt(document.getElementById('homens').value) || 0,
+            mulheres: parseInt(document.getElementById('mulheres').value) || 0,
+            criancas: parseInt(document.getElementById('criancas').value) || 0,
+            ministro: document.getElementById('ministro').value,
+            dirigente: document.getElementById('dirigente').value,
+            observacoes: document.getElementById('observacoes').value
         };
 
-        // Cores dos temas
-        const themes = {
-            blue: {
-                primary: '#1a5fb4',
-                gradient: 'linear-gradient(135deg, #1a5fb4 0%, #4a8ad4 100%)'
-            },
-            green: {
-                primary: '#27ae60',
-                gradient: 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)'
-            },
-            purple: {
-                primary: '#9b59b6',
-                gradient: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)'
-            },
-            red: {
-                primary: '#e74c3c',
-                gradient: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'
-            }
-        };
+        const loadingText = document.getElementById('loading-text');
+        const overlay = document.getElementById('loading-overlay');
+        
+        try {
+            loadingText.innerText = "Salvando Culto...";
+            overlay.style.display = 'flex';
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initApp();
+            // 1. Salvar Culto
+            const { data: culto, error } = await supabase.from('cultos').insert(novoCulto).select().single();
+            if (error) throw error;
+
+            // 2. Salvar Escalas
+            const escalasInputs = [
+                { dept: 'Diaconato', val: document.getElementById('diaconato').value },
+                { dept: 'Infantil', val: document.getElementById('infantil').value },
+                { dept: 'Música', val: document.getElementById('musica').value },
+                { dept: 'Mídia', val: document.getElementById('midia').value }
+            ];
+
+            const escalasParaSalvar = escalasInputs
+                .filter(s => s.val && s.val.trim() !== "")
+                .map(s => ({ 
+                    culto_id: culto.id, 
+                    departamento: s.dept, 
+                    nomes: s.val 
+                }));
+
+            if (escalasParaSalvar.length > 0) {
+                const { error: errorEscalas } = await supabase.from('escalas').insert(escalasParaSalvar);
+                if (errorEscalas) throw errorEscalas;
+            }
+
+            mostrarToast('Culto registrado com sucesso!', 'success');
+            document.getElementById('culto-form').reset();
+            
+            // Recarregar
+            await carregarDados();
+            document.getElementById('dashboard-tab').click();
+
+        } catch (error) {
+            console.error(error);
+            mostrarToast('Erro ao salvar: ' + error.message, 'error');
+        } finally {
+            overlay.style.display = 'none';
+        }
+    }
+
+    async function deletarCulto(id) {
+        if(!confirm('Tem certeza que deseja excluir este culto? Todas as escalas associadas serão removidas.')) return;
+        
+        try {
+            const { error } = await supabase.from('cultos').delete().eq('id', id);
+            if (error) throw error;
+            
+            mostrarToast('Culto removido com sucesso.', 'success');
+            await carregarDados();
+        } catch (err) {
+            mostrarToast('Erro ao deletar: ' + err.message, 'error');
+        }
+    }
+
+    // --- 5. RENDERIZAÇÃO DA UI ---
+
+    function atualizarUI() {
+        renderDashboard();
+        renderHistorico();
+        renderEscalas();
+        renderMembros();
+        updateBadges();
+    }
+
+    function renderDashboard() {
+        const totalCultos = estado.cultos.length;
+        const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
+        const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
+        const totalMembros = estado.membros.length;
+        
+        // Cards
+        document.getElementById('dashboard-cards').innerHTML = `
+            <div class="card card-success">
+                <div class="card-header">
+                    <div class="card-title">Cultos Realizados</div>
+                    <div class="card-icon icon-green"><i class="fas fa-church"></i></div>
+                </div>
+                <div class="card-value">${totalCultos}</div>
+                <div class="card-subvalue">Registrados no sistema</div>
+            </div>
+            <div class="card card-info">
+                <div class="card-header">
+                    <div class="card-title">Média de Público</div>
+                    <div class="card-icon icon-blue"><i class="fas fa-users"></i></div>
+                </div>
+                <div class="card-value">${mediaPublico}</div>
+                <div class="card-subvalue">Total: ${totalPublico} pessoas</div>
+            </div>
+            <div class="card card-warning">
+                <div class="card-header">
+                    <div class="card-title">Membros Ativos</div>
+                    <div class="card-icon icon-orange"><i class="fas fa-user-check"></i></div>
+                </div>
+                <div class="card-value">${totalMembros}</div>
+                <div class="card-subvalue">${estado.membros.filter(m => m.ativo).length} ativos</div>
+            </div>
+        `;
+
+        renderCharts();
+        renderTimeline();
+    }
+
+    function renderCharts() {
+        if(estado.cultos.length === 0) return;
+
+        // Gráfico de Tipos
+        const tipos = {};
+        estado.cultos.forEach(c => tipos[c.tipo_culto] = (tipos[c.tipo_culto] || 0) + 1);
+        
+        const ctxType = document.getElementById('cultoTypeChart').getContext('2d');
+        if(estado.charts.type) estado.charts.type.destroy();
+        estado.charts.type = new Chart(ctxType, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(tipos),
+                datasets: [{
+                    data: Object.values(tipos),
+                    backgroundColor: ['#1a5fb4', '#27ae60', '#f39c12', '#9b59b6', '#e74c3c'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
         });
 
-        async function initApp() {
-            cacheDOM();
-            bindEvents();
-            await loadSettings();
-            await carregarDados();
-            initQuickActions();
-            updateBadges();
-            
-            document.getElementById('loading-overlay').style.display = 'none';
+        // Gráfico de Crescimento (Linha)
+        // Pega os últimos 10 cultos, inverte para ficar cronológico
+        const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
+        const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
+        const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
+
+        const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+        if(estado.charts.growth) estado.charts.growth.destroy();
+        estado.charts.growth = new Chart(ctxGrowth, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Público Total',
+                    data: dataTotal,
+                    borderColor: '#1a5fb4',
+                    backgroundColor: 'rgba(26, 95, 180, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Gráfico Demográfico
+        const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
+        const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
+        const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
+        
+        const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
+        if(estado.charts.demo) estado.charts.demo.destroy();
+        estado.charts.demo = new Chart(ctxDemo, {
+            type: 'bar',
+            data: {
+                labels: ['Homens', 'Mulheres', 'Crianças'],
+                datasets: [{
+                    label: 'Total Acumulado',
+                    data: [totalH, totalM, totalC],
+                    backgroundColor: ['#3498db', '#e91e63', '#f1c40f'],
+                    borderRadius: 5
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    function renderHistorico() {
+        // Verifica se a tabela existe na seção de histórico, se não, cria
+        const historicoContainer = document.querySelector('#historico .section');
+        if(!historicoContainer) return;
+
+        let tabelaHTML = `
+            <div class="table-responsive">
+                <table class="table" style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #eee; text-align:left;">
+                            <th style="padding:15px;">Data</th>
+                            <th style="padding:15px;">Tipo</th>
+                            <th style="padding:15px;">Público</th>
+                            <th style="padding:15px;">Ministro</th>
+                            <th style="padding:15px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${estado.cultos.map(c => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:15px;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
+                                <td style="padding:15px;">${c.tipo_culto}</td>
+                                <td style="padding:15px;"><strong>${c.homens+c.mulheres+c.criancas}</strong></td>
+                                <td style="padding:15px;">${c.ministro}</td>
+                                <td style="padding:15px;">
+                                    <button class="btn" style="color:var(--danger); cursor:pointer; background:none; border:none;" onclick="deletarCulto(${c.id})"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        // Substitui o conteúdo da section para garantir que a tabela apareça
+        if (estado.cultos.length > 0) {
+            historicoContainer.innerHTML = `<h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>` + tabelaHTML;
+        } else {
+            historicoContainer.innerHTML = `<h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3><p style="text-align:center; padding:20px; color:#999;">Nenhum culto registrado.</p>`;
         }
+    }
 
-        function cacheDOM() {
-            // Adicione novos elementos que serão usados
-            const ids = [
-                'quick-actions', 'growthChart', 'timeline-events',
-                'dark-mode-toggle', 'animations-toggle', 'email-reports-toggle',
-                'auto-backup-toggle', 'notifications-list', 'modal-notifications',
-                'notification-count', 'total-cultos-count', 'last-update', 'uptime'
-            ];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) window[id] = el;
-            });
-            
-            // Configura data atual
-            const dataInput = document.getElementById('data-culto');
-            if(dataInput) dataInput.valueAsDate = new Date();
-        }
+    function renderEscalas() {
+        const container = document.getElementById('lista-escalas');
+        if(!container) return; // Se o elemento não existir no HTML fornecido
+        
+        container.innerHTML = '';
+        const ultimosCultos = estado.cultos.slice(0, 10);
 
-        function bindEvents() {
-            // Eventos existentes mantidos
-            // Adicionar novos eventos
-            document.querySelectorAll('.theme-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        }
+        ultimosCultos.forEach(culto => {
+            const escalasCulto = estado.escalas.filter(e => e.culto_id === culto.id);
+            if(escalasCulto.length === 0) return;
 
-        async function loadSettings() {
-            // Carrega configurações do localStorage
-            const savedSettings = localStorage.getItem('churchManagerSettings');
-            if (savedSettings) {
-                estado.configs = { ...estado.configs, ...JSON.parse(savedSettings) };
-            }
-            
-            // Aplica configurações
-            applyTheme(estado.configs.theme);
-            if (estado.configs.darkMode) toggleDarkMode(true);
-            
-            // Atualiza toggles
-            const toggles = {
-                'dark-mode-toggle': estado.configs.darkMode,
-                'animations-toggle': estado.configs.animations,
-                'email-reports-toggle': estado.configs.emailReports,
-                'auto-backup-toggle': estado.configs.autoBackup
-            };
-            
-            Object.entries(toggles).forEach(([id, value]) => {
-                const el = document.getElementById(id);
-                if (el) el.checked = value;
-            });
-        }
-
-        function saveSettings() {
-            localStorage.setItem('churchManagerSettings', JSON.stringify(estado.configs));
-        }
-
-        function initQuickActions() {
-            const actions = [
-                { icon: 'fas fa-plus', text: 'Novo Culto', action: () => document.getElementById('registro-tab').click() },
-                { icon: 'fas fa-user-plus', text: 'Novo Membro', action: () => openModalMembro() },
-                { icon: 'fas fa-file-export', text: 'Exportar Dados', action: exportData },
-                { icon: 'fas fa-print', text: 'Imprimir Relatório', action: printReport },
-                { icon: 'fas fa-calendar-alt', text: 'Calendário', action: showCalendar }
-            ];
-            
-            const container = document.getElementById('quick-actions');
-            container.innerHTML = actions.map(action => `
-                <button class="quick-action-btn" onclick="${action.action.name}()">
-                    <i class="${action.icon}"></i> ${action.text}
-                </button>
-            `).join('');
-        }
-
-        function updateBadges() {
-            const cultosCount = estado.cultos.length;
-            const membrosCount = estado.membros.length;
-            
-            // Atualiza badges
-            document.getElementById('dashboard-badge').textContent = '3';
-            document.getElementById('historico-badge').textContent = cultosCount;
-            document.getElementById('notification-count').textContent = '3';
-            
-            // Atualiza contadores nas configurações
-            if (totalCultosCount) totalCultosCount.textContent = cultosCount;
-            if (lastUpdate) lastUpdate.textContent = new Date().toLocaleDateString('pt-BR');
-        }
-
-        // Funções do Dashboard Aprimorado
-        function renderDashboard() {
-            const totalCultos = estado.cultos.length;
-            const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
-            const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
-            const totalMembros = estado.membros.length;
-            
-            // Calcular crescimento
-            const ultimoMes = estado.cultos.filter(c => {
-                const cultoDate = new Date(c.data_culto);
-                const umMesAtras = new Date();
-                umMesAtras.setMonth(umMesAtras.getMonth() - 1);
-                return cultoDate > umMesAtras;
-            }).length;
-            
-            const crescimento = totalCultos > 0 ? ((ultimoMes / totalCultos) * 100).toFixed(1) : 0;
-
-            // Cards do Dashboard
-            const cardsHTML = `
-                <div class="card card-success">
-                    <div class="card-header">
-                        <div class="card-title">Cultos Realizados</div>
-                        <div class="card-icon icon-green">
-                            <i class="fas fa-church"></i>
-                        </div>
-                    </div>
-                    <div class="card-value">${totalCultos}</div>
-                    <div class="card-subvalue">${ultimoMes} no último mês</div>
-                    <div class="card-change ${crescimento > 0 ? 'positive' : 'negative'}">
-                        <i class="fas fa-${crescimento > 0 ? 'arrow-up' : 'arrow-down'}"></i>
-                        ${crescimento}% vs período anterior
-                    </div>
-                    <div class="card-chart-mini">
-                        <canvas id="mini-chart-cultos"></canvas>
-                    </div>
+            const card = document.createElement('div');
+            card.className = 'escalado-card';
+            card.innerHTML = `
+                <div style="font-weight:bold; margin-bottom:10px; color:var(--primary); border-bottom:1px solid #eee; padding-bottom:5px;">
+                    ${new Date(culto.data_culto).toLocaleDateString('pt-BR')} - ${culto.tipo_culto}
                 </div>
-
-                <div class="card card-info">
-                    <div class="card-header">
-                        <div class="card-title">Média de Público</div>
-                        <div class="card-icon icon-blue">
-                            <i class="fas fa-users"></i>
-                        </div>
+                ${escalasCulto.map(e => `
+                    <div style="font-size:0.9rem; margin-bottom:5px;">
+                        <span style="font-weight:600; color:#555;">${e.departamento}:</span> ${e.nomes}
                     </div>
-                    <div class="card-value">${mediaPublico}</div>
-                    <div class="card-subvalue">Total: ${totalPublico} pessoas</div>
-                    <div class="card-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        +12% vs mês anterior
-                    </div>
-                </div>
-
-                <div class="card card-warning">
-                    <div class="card-header">
-                        <div class="card-title">Membros Ativos</div>
-                        <div class="card-icon icon-orange">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                    </div>
-                    <div class="card-value">${totalMembros}</div>
-                    <div class="card-subvalue">${estado.membros.filter(m => m.ativo).length} ativos</div>
-                    <div class="card-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        +5% este mês
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Taxa de Crescimento</div>
-                        <div class="card-icon icon-purple">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                    </div>
-                    <div class="card-value">${crescimento}%</div>
-                    <div class="card-subvalue">Últimos 30 dias</div>
-                    <div class="card-change ${crescimento > 0 ? 'positive' : 'negative'}">
-                        <i class="fas fa-${crescimento > 0 ? 'arrow-up' : 'arrow-down'}"></i>
-                        ${crescimento > 0 ? 'Crescendo' : 'Decrescendo'}
-                    </div>
-                </div>
+                `).join('')}
             `;
+            container.appendChild(card);
+        });
+    }
+    
+    function renderMembros() {
+        // Lógica similar para membros, verificando se a tabela existe
+        const membrosContainer = document.querySelector('#membros .section');
+        if(!membrosContainer) return;
 
-            document.getElementById('dashboard-cards').innerHTML = cardsHTML;
+        membrosContainer.innerHTML = `
+            <h3 class="section-title"><i class="fas fa-address-book"></i> Lista de Membros</h3>
+            <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:5px; cursor:pointer;"><i class="fas fa-plus"></i> Novo Membro</button>
+            <div class="table-responsive">
+                <table class="table" style="width:100%; text-align:left;">
+                    <thead><tr><th style="padding:10px;">Nome</th><th style="padding:10px;">Depto</th><th style="padding:10px;">Ações</th></tr></thead>
+                    <tbody>
+                        ${estado.membros.map(m => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${m.nome}</td>
+                                <td style="padding:10px;">${(m.departamentos||[]).join(', ')}</td>
+                                <td style="padding:10px;"><button style="color:red; background:none; border:none; cursor:pointer;" onclick="deletarMembro(${m.id})"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
 
-            // Timeline de Próximos Eventos
-            renderTimeline();
-
-            // Gráfico de Crescimento
-            renderGrowthChart();
-        }
-
-        function renderTimeline() {
-            const hoje = new Date();
-            const eventos = [
-                { data: new Date(hoje.getTime() + 86400000), titulo: 'Culto de Jovens', desc: 'Louvor especial com banda jovem' },
-                { data: new Date(hoje.getTime() + 3 * 86400000), titulo: 'Santa Ceia', desc: 'Mensagem especial sobre comunhão' },
-                { data: new Date(hoje.getTime() + 7 * 86400000), titulo: 'Culto da Família', desc: 'Todos os departamentos' }
-            ];
-
-            const timelineHTML = eventos.map(evento => `
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <div style="font-weight: 600; color: var(--dark);">${evento.titulo}</div>
-                        <div style="color: var(--gray); font-size: 0.9rem; margin-top: 5px;">${evento.desc}</div>
-                        <div style="margin-top: 8px; font-size: 0.8rem; color: var(--primary);">
-                            <i class="far fa-calendar"></i> ${evento.data.toLocaleDateString('pt-BR')}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('timeline-events').innerHTML = timelineHTML;
-        }
-
-        function renderGrowthChart() {
-            const ctx = document.getElementById('growthChart');
-            if (!ctx) return;
-
-            // Preparar dados para 6 meses
-            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
-            const dados = meses.map(() => Math.floor(Math.random() * 100) + 50);
-
-            if (estado.charts.growth) estado.charts.growth.destroy();
-
-            estado.charts.growth = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: meses,
-                    datasets: [{
-                        label: 'Público Total',
-                        data: dados,
-                        borderColor: 'var(--primary)',
-                        backgroundColor: 'rgba(26, 95, 180, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                drawBorder: false
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Funções das Configurações
-        function toggleDarkMode(initial = false) {
-            estado.configs.darkMode = !estado.configs.darkMode;
+    async function salvarMembro(e) {
+        e.preventDefault();
+        const nome = document.getElementById('membro-nome').value;
+        const email = document.getElementById('membro-email').value;
+        const deptos = document.getElementById('membro-departamentos').value.split(',').map(s => s.trim());
+        
+        try {
+            const { error } = await supabase.from('membros').insert({ nome, email, departamentos: deptos });
+            if (error) throw error;
             
-            if (estado.configs.darkMode) {
-                document.documentElement.style.setProperty('--light', '#1a1a2e');
-                document.documentElement.style.setProperty('--dark', '#ffffff');
-                document.documentElement.style.setProperty('--light-gray', '#16213e');
-                document.body.style.background = 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)';
-            } else {
-                document.documentElement.style.setProperty('--light', '#f8f9fa');
-                document.documentElement.style.setProperty('--dark', '#2c3e50');
-                document.documentElement.style.setProperty('--light-gray', '#ecf0f1');
-                document.body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)';
-            }
-            
-            if (!initial) {
-                saveSettings();
-                mostrarToast('Modo escuro ' + (estado.configs.darkMode ? 'ativado' : 'desativado'), 'success');
-            }
+            mostrarToast('Membro cadastrado!', 'success');
+            document.getElementById('modal-membro').classList.remove('active');
+            carregarDados();
+        } catch (err) {
+            mostrarToast('Erro: ' + err.message, 'error');
         }
+    }
 
-        function toggleAnimations() {
-            estado.configs.animations = !estado.configs.animations;
-            saveSettings();
-            mostrarToast('Animações ' + (estado.configs.animations ? 'ativadas' : 'desativadas'), 'success');
+    async function deletarMembro(id) {
+        if(!confirm('Excluir membro?')) return;
+        const { error } = await supabase.from('membros').delete().eq('id', id);
+        if(!error) {
+            mostrarToast('Membro excluído', 'success');
+            carregarDados();
         }
+    }
 
-        function changeTheme(themeName) {
-            estado.configs.theme = themeName;
-            applyTheme(themeName);
-            saveSettings();
-            mostrarToast('Tema alterado para ' + themeName, 'success');
-        }
+    // --- 6. HELPERS ---
 
-        function applyTheme(themeName) {
-            const theme = themes[themeName];
-            if (!theme) return;
+    function cacheDOM() {
+        // Elementos de formulário
+        const formCulto = document.getElementById('culto-form');
+        if(formCulto) formCulto.addEventListener('submit', salvarCulto);
+        
+        // Modal Membro
+        const formMembro = document.getElementById('form-membro');
+        if(formMembro) formMembro.addEventListener('submit', salvarMembro);
 
-            document.documentElement.style.setProperty('--primary', theme.primary);
-            document.documentElement.style.setProperty('--gradient-primary', theme.gradient);
-            
-            // Atualiza cores dos elementos com gradiente
-            document.querySelectorAll('.card-success::before').forEach(el => {
-                el.style.background = theme.gradient;
-            });
-        }
+        // Inputs de soma automática
+        ['homens', 'mulheres', 'criancas'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.addEventListener('input', calcularTotal);
+        });
 
-        function toggleEmailReports() {
-            estado.configs.emailReports = !estado.configs.emailReports;
-            saveSettings();
-            mostrarToast('Relatórios por email ' + (estado.configs.emailReports ? 'ativados' : 'desativados'), 'success');
-        }
+        // Define data de hoje
+        const dateInput = document.getElementById('data-culto');
+        if(dateInput) dateInput.valueAsDate = new Date();
+    }
 
-        function toggleAutoBackup() {
-            estado.configs.autoBackup = !estado.configs.autoBackup;
-            saveSettings();
-            mostrarToast('Backup automático ' + (estado.configs.autoBackup ? 'ativado' : 'desativado'), 'success');
-        }
-
-        function createBackup() {
-            const backupData = {
-                cultos: estado.cultos,
-                membros: estado.membros,
-                escalas: estado.escalas,
-                configs: estado.configs,
-                timestamp: new Date().toISOString()
-            };
-
-            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup-igreja-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            mostrarToast('Backup criado com sucesso!', 'success');
-        }
-
-        function restoreBackup() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                const text = await file.text();
-                const backupData = JSON.parse(text);
+    function bindEvents() {
+        // Tabs Navegação
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Remove active classes
+                document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                 
-                if (confirm('Restaurar backup? Isso substituirá os dados atuais.')) {
-                    estado.cultos = backupData.cultos || [];
-                    estado.membros = backupData.membros || [];
-                    estado.escalas = backupData.escalas || [];
-                    estado.configs = { ...estado.configs, ...backupData.configs };
-                    
-                    // Atualizar no Supabase
-                    await updateDatabaseFromBackup(backupData);
-                    
-                    mostrarToast('Backup restaurado com sucesso!', 'success');
-                    atualizarUI();
-                }
-            };
-            input.click();
-        }
-
-        async function updateDatabaseFromBackup(backupData) {
-            // Implementar lógica para atualizar o Supabase
-            // Esta é uma operação complexa que depende da sua estrutura de dados
-            mostrarToast('Restauração iniciada...', 'warning');
-        }
-
-        function clearData() {
-            if (confirm('Limpar dados antigos? Cultos com mais de 1 ano serão removidos.')) {
-                const umAnoAtras = new Date();
-                umAnoAtras.setFullYear(umAnoAtras.getFullYear() - 1);
+                // Add active
+                link.classList.add('active');
+                const targetId = link.getAttribute('href').substring(1);
+                document.getElementById(targetId).classList.add('active');
                 
-                estado.cultos = estado.cultos.filter(c => new Date(c.data_culto) > umAnoAtras);
-                mostrarToast('Dados antigos limpos!', 'success');
-                atualizarUI();
-            }
-        }
+                // Mobile close
+                if(window.innerWidth < 992) {
+                    document.getElementById('sidebar').classList.remove('active');
+                    document.getElementById('main-content').classList.remove('active');
+                }
+                
+                // Re-render charts if needed
+                if(targetId === 'dashboard' || targetId === 'relatorios') renderCharts();
+            });
+        });
 
-        function checkForUpdates() {
-            mostrarToast('Verificando atualizações...', 'warning');
-            setTimeout(() => {
-                mostrarToast('Sistema está atualizado!', 'success');
-            }, 1500);
-        }
+        // Mobile toggle
+        document.getElementById('menu-toggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('main-content').classList.toggle('active');
+        });
 
-        function showNotifications() {
-            const notifications = [
-                { id: 1, title: 'Culto de Domingo', message: 'Lembrete: Culto começa às 19h', time: '2 horas atrás', unread: true },
-                { id: 2, title: 'Nova Escala', message: 'Você foi escalado para o diaconato', time: '1 dia atrás', unread: true },
-                { id: 3, title: 'Relatório Semanal', message: 'Relatório disponível para download', time: '2 dias atrás', unread: false }
-            ];
+        // Modal close buttons
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            });
+        });
+    }
 
-            const notificationsHTML = notifications.map(notif => `
-                <div class="timeline-item" style="margin-bottom: 15px; ${notif.unread ? 'border-left: 3px solid var(--primary); padding-left: 10px;' : ''}">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <div style="font-weight: 600; color: var(--dark);">${notif.title}</div>
-                            <div style="color: var(--gray); font-size: 0.9rem; margin-top: 5px;">${notif.message}</div>
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--gray);">${notif.time}</div>
-                    </div>
-                    ${notif.unread ? '<div style="background: var(--primary); width: 8px; height: 8px; border-radius: 50%; margin-top: 8px;"></div>' : ''}
+    function calcularTotal() {
+        const h = parseInt(document.getElementById('homens').value) || 0;
+        const m = parseInt(document.getElementById('mulheres').value) || 0;
+        const c = parseInt(document.getElementById('criancas').value) || 0;
+        document.getElementById('total-presentes').value = h + m + c;
+    }
+
+    function renderTimeline() {
+        const timeline = document.getElementById('timeline-events');
+        if(!timeline) return;
+
+        // Lógica simples de próximos eventos
+        const hoje = new Date();
+        const eventos = [
+            { titulo: "Culto de Oração", data: "Quinta-feira", desc: "19:30 - Templo" },
+            { titulo: "Culto da Família", data: "Domingo", desc: "18:00 - Templo" }
+        ];
+
+        timeline.innerHTML = eventos.map(ev => `
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div style="font-weight:600; color:var(--dark);">${ev.titulo}</div>
+                    <div style="color:var(--gray); font-size:0.9rem;">${ev.desc}</div>
+                    <div style="margin-top:5px; font-size:0.8rem; color:var(--primary);"><i class="far fa-calendar"></i> ${ev.data}</div>
                 </div>
-            `).join('');
+            </div>
+        `).join('');
+    }
 
-            document.getElementById('notifications-list').innerHTML = notificationsHTML;
-            document.getElementById('modal-notifications').classList.add('active');
-            document.getElementById('notification-count').textContent = '0';
-        }
+    function updateBadges() {
+        const dashBadge = document.getElementById('dashboard-badge');
+        const histBadge = document.getElementById('historico-badge');
+        if(dashBadge) dashBadge.innerText = "3"; // Exemplo
+        if(histBadge) histBadge.innerText = estado.cultos.length;
+    }
 
-        function changeChartType(chartName, type) {
-            // Implementar mudança de tipo de gráfico
-            const buttons = document.querySelectorAll(`#${chartName}Chart`).closest('.chart-container').querySelectorAll('.chart-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            mostrarToast('Gráfico alterado para ' + type, 'info');
-        }
+    function initQuickActions() {
+        const container = document.getElementById('quick-actions');
+        if(!container) return;
+        container.innerHTML = `
+            <button class="quick-action-btn" onclick="document.getElementById('registro-tab').click()"><i class="fas fa-plus"></i> Novo Culto</button>
+            <button class="quick-action-btn" onclick="openModalMembro()"><i class="fas fa-user-plus"></i> Novo Membro</button>
+            <button class="quick-action-btn" onclick="window.print()"><i class="fas fa-print"></i> Relatório</button>
+        `;
+    }
 
-        // Funções utilitárias adicionais
-        function exportData() {
-            const exportObj = {
-                cultos: estado.cultos,
-                membros: estado.membros,
-                escalas: estado.escalas,
-                exportDate: new Date().toISOString()
-            };
+    // Expor funções globais
+    window.openModalMembro = () => {
+        document.getElementById('form-membro').reset();
+        document.getElementById('modal-membro').classList.add('active');
+    };
+    
+    window.mostrarToast = (msg, tipo) => {
+        const t = document.createElement('div');
+        t.className = `toast toast-${tipo}`;
+        t.innerHTML = tipo === 'success' ? `<i class="fas fa-check-circle"></i> ${msg}` : `<i class="fas fa-exclamation-circle"></i> ${msg}`;
+        document.getElementById('toast-container').appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+    };
 
-            const csv = convertToCSV(exportObj);
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `export-igreja-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            
-            mostrarToast('Dados exportados com sucesso!', 'success');
-        }
+    window.changeChartType = (chart, type) => {
+        mostrarToast(`Gráfico alterado para ${type} (Simulação)`, 'info');
+    };
+    
+    // Funções de Settings (Visual apenas por enquanto)
+    window.toggleDarkMode = () => mostrarToast('Modo escuro alterado', 'success');
+    window.changeTheme = (t) => mostrarToast('Tema alterado para '+t, 'success');
+    window.logout = () => window.location.reload();
 
-        function convertToCSV(obj) {
-            // Implementar conversão para CSV
-            return JSON.stringify(obj, null, 2);
-        }
-
-        function printReport() {
-            window.print();
-        }
-
-        function showCalendar() {
-            mostrarToast('Calendário em desenvolvimento', 'info');
-        }
-
-        function logout() {
-            if (confirm('Deseja sair do sistema?')) {
-                mostrarToast('Saindo do sistema...', 'warning');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }
-        }
-
-        // Mantenha as funções originais abaixo...
-        // ... (restante do código original mantido)
-
-    </script>
+</script>
 </body>
 </html>
+
