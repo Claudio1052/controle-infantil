@@ -1060,7 +1060,7 @@ function renderMembros() {
                         <th style="padding:15px;">Idade / Aniversário</th>
                         <th style="padding:15px;">Telefone</th>
                         <th style="padding:15px;">Departamentos</th>
-                        <th style="padding:15px;">Rhema / Escola</th>
+                        <th style="padding:15px;">Rhema / Ministros</th>
                         <th style="padding:15px;">Ações</th>
                     </tr>
                 </thead>
@@ -1088,7 +1088,7 @@ function renderMembros() {
                                 </td>
                                 <td style="padding:15px;">
                                     ${m.fez_rhema ? 'Rhema' : ''}
-                                    ${m.escola_ministros ? 'Escola' : ''}
+                                    ${m.escola_ministros ? 'Ministros' : ''}
                                     ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
                                 </td>
                                 <td style="padding:15px;">
@@ -1231,3 +1231,4 @@ document.getElementById('membro-telefone')?.addEventListener('input', function (
     </script>
 </body>
 </html>
+
