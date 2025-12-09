@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gerenciamento de Cultos - Verbo da Vida Zona Leste</title>
+    <title>Gestão Ministerial | Verbo da Vida</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
     <style>
+        /* Variáveis de Tema Padrão (Light Mode) */
         :root {
             --primary: #1a5fb4;
             --primary-dark: #0d4a8a;
@@ -19,1757 +22,1071 @@
             --dark: #2c3e50;
             --dark-light: #34495e;
             --success: #27ae60;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --info: #3498db;
-            --gray: #95a5a6;
-            --light-gray: #ecf0f1;
-            --border-radius: 12px;
-            --border-radius-sm: 8px;
-            --shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.15);
-            --gradient-primary: linear-gradient(135deg, #1a5fb4 0%, #4a8ad4 100%);
-            --gradient-secondary: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
-            --gradient-success: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --gray: #6c757d;
+            --bg-main: #f4f6f9;
+            --bg-card: #ffffff;
+            --bg-sidebar: #2c3e50;
+            --text-main: #212529;
+            --text-light: #f8f9fa;
+            --border-color: #dee2e6;
+            --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --radius: 8px;
+        }
+
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --primary: #4a8ad4;
+            --primary-dark: #1a5fb4;
+            --secondary: #f39c12;
+            --dark: #f8f9fa;
+            --bg-main: #1f2a37; /* slate-800 */
+            --bg-card: #303e4d; /* slate-700 */
+            --bg-sidebar: #111827; /* gray-900 */
+            --text-main: #f9fafb;
+            --text-light: #1f2a37;
+            --border-color: #3e4d5f;
+            --shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.5);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Roboto', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%); color: var(--dark); line-height: 1.6; min-height: 100vh; }
-        .container { display: flex; min-height: 100vh; }
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            transition: all 0.3s;
+        }
 
-        /* Sidebar Modernizada */
+        /* Layout */
+        .wrapper { display: flex; min-height: 100vh; }
         .sidebar { 
-            width: 280px; 
-            background: var(--gradient-primary);
-            color: white; 
-            padding: 25px 0; 
+            width: 250px; 
+            background-color: var(--bg-sidebar); 
+            color: var(--text-light); 
             position: fixed; 
-            height: 100vh; 
-            overflow-y: auto; 
-            z-index: 1000; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-lg);
+            height: 100%; 
+            padding: 20px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: transform 0.3s;
         }
-        .logo { 
-            padding: 0 25px 25px; 
-            text-align: center; 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
-            margin-bottom: 25px; 
+        .main-content { 
+            margin-left: 250px; 
+            padding: 30px; 
+            flex-grow: 1;
+            transition: margin-left 0.3s;
         }
-        .logo h1 { 
+
+        /* Sidebar - Brand & Navigation */
+        .brand { 
             font-family: 'Poppins', sans-serif; 
-            font-size: 2rem; 
+            font-size: 1.5rem; 
             font-weight: 700; 
-            margin-bottom: 8px; 
-            background: linear-gradient(to right, #ffffff, #e0f7ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .logo p { 
-            font-size: 0.9rem; 
-            opacity: 0.9; 
-            font-weight: 300;
-            letter-spacing: 0.5px;
+            margin-bottom: 30px;
+            color: var(--primary-light);
+            display: flex; align-items: center; gap: 10px;
         }
         .nav-menu { list-style: none; }
-        .nav-menu li { margin-bottom: 8px; position: relative; }
-        .nav-menu a { 
-            display: flex; 
-            align-items: center; 
-            padding: 16px 25px; 
-            color: rgba(255, 255, 255, 0.9); 
+        .nav-menu a {
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px 15px; 
+            color: rgba(255, 255, 255, 0.7); 
             text-decoration: none; 
-            transition: all 0.3s ease; 
-            border-left: 4px solid transparent;
-            position: relative;
-            overflow: hidden;
+            border-radius: var(--radius);
+            margin-bottom: 5px;
+            transition: all 0.2s;
+            font-weight: 500;
         }
-        .nav-menu a:hover { 
-            background: rgba(255, 255, 255, 0.15); 
-            color: white;
-            border-left: 4px solid var(--secondary);
-            transform: translateX(5px);
+        .nav-menu a:hover, .nav-menu a.active {
+            background-color: var(--primary);
+            color: var(--text-light);
+            box-shadow: 0 4px 8px rgba(26, 95, 180, 0.3);
         }
-        .nav-menu a.active { 
-            background: rgba(255, 255, 255, 0.2); 
-            border-left: 4px solid var(--secondary);
-            color: white;
-            box-shadow: inset 4px 0 0 var(--secondary);
-        }
-        .nav-menu a::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: 0.5s;
-        }
-        .nav-menu a:hover::after {
-            left: 100%;
-        }
-        .nav-menu i { 
-            margin-right: 12px; 
-            width: 20px; 
-            text-align: center; 
-            font-size: 1.1rem;
-        }
-        .nav-menu .badge {
-            position: absolute;
-            right: 25px;
-            background: var(--secondary);
-            color: white;
-            border-radius: 12px;
-            padding: 2px 8px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
+        .nav-menu i { width: 20px; text-align: center; }
+        .badge { background: var(--secondary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: auto; }
 
-        /* Main Content */
-        .main-content { 
-            flex: 1; 
-            margin-left: 280px; 
-            padding: 30px; 
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+        /* Top Bar */
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px;
         }
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 40px; 
-            padding: 25px 30px; 
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-left: 5px solid var(--primary);
-        }
-        .header-title h2 { 
+        .page-title { 
             font-family: 'Poppins', sans-serif; 
-            font-weight: 700; 
-            color: var(--dark); 
-            font-size: 2rem; 
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            font-size: 1.8rem; 
+            font-weight: 600; 
         }
-        .header-title h2 i {
-            color: var(--primary);
-            background: rgba(26, 95, 180, 0.1);
-            padding: 12px;
-            border-radius: 50%;
-        }
-        .header-title p { 
-            color: var(--gray); 
-            font-size: 1rem; 
-            margin-top: 5px;
-            font-weight: 400;
-        }
-        .user-info { 
-            display: flex; 
-            align-items: center; 
-            gap: 20px; 
+        .user-profile { 
+            display: flex; align-items: center; gap: 10px; 
+            cursor: pointer; 
+            background: var(--bg-card);
+            padding: 8px 15px;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
         }
         .user-avatar { 
-            width: 50px; 
-            height: 50px; 
-            border-radius: 50%; 
-            background: var(--gradient-primary); 
-            color: white; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 12px rgba(26, 95, 180, 0.3);
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
+            width: 36px; height: 36px; border-radius: 50%; 
+            background: var(--primary); color: white; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 600; font-size: 0.9rem;
         }
-        .user-avatar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(26, 95, 180, 0.4);
-        }
-        .user-avatar::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: var(--gradient-primary);
-            border-radius: 50%;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .user-avatar:hover::after {
-            opacity: 0.3;
-        }
-        .notification-bell {
-            position: relative;
-            cursor: pointer;
-            font-size: 1.3rem;
-            color: var(--dark);
-            transition: all 0.3s;
-        }
-        .notification-bell:hover {
-            color: var(--primary);
-            transform: scale(1.1);
-        }
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
+        .user-info span { font-size: 0.9rem; font-weight: 500; display: block; line-height: 1.2; }
+        .user-info small { font-size: 0.75rem; color: var(--gray); }
 
-        /* Cards Modernizados */
-        .cards-container { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 25px; 
-            margin-bottom: 40px; 
-        }
-        .card { 
-            background: white; 
-            border-radius: var(--border-radius); 
-            padding: 25px; 
+        /* Content & Tabs */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            border: none;
+            margin-bottom: 25px;
         }
-        .card:hover { 
-            transform: translateY(-8px); 
-            box-shadow: var(--shadow-lg);
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: var(--gradient-primary);
-        }
-        .card-success::before { background: var(--gradient-success); }
-        .card-warning::before { background: var(--gradient-secondary); }
-        .card-info::before { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
-        .card-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start; 
-            margin-bottom: 20px; 
-        }
-        .card-title { 
-            font-size: 1rem; 
-            color: var(--gray); 
-            font-weight: 500; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .card-icon { 
-            width: 60px; 
-            height: 60px; 
-            border-radius: 15px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.8rem;
-            background: rgba(26, 95, 180, 0.1);
-            color: var(--primary);
-            transition: all 0.3s;
-        }
-        .card:hover .card-icon {
-            transform: scale(1.1) rotate(5deg);
-        }
-        .icon-blue { background: linear-gradient(135deg, rgba(26, 95, 180, 0.15) 0%, rgba(26, 95, 180, 0.05) 100%); color: var(--primary); }
-        .icon-green { background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.05) 100%); color: var(--success); }
-        .icon-orange { background: linear-gradient(135deg, rgba(230, 126, 34, 0.15) 0%, rgba(230, 126, 34, 0.05) 100%); color: var(--secondary); }
-        .icon-purple { background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.05) 100%); color: #9b59b6; }
-        .card-value { 
-            font-size: 2.5rem; 
-            font-weight: 800; 
-            color: var(--dark); 
-            margin-bottom: 10px;
+        .section-title {
             font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
         }
-        .card-subvalue {
-            font-size: 1rem;
-            color: var(--gray);
-            font-weight: 400;
+        
+        /* Cards Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        .card-change { 
-            font-size: 0.9rem; 
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 10px;
+        .card {
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+            border: 1px solid var(--border-color);
         }
-        .positive { color: var(--success); }
-        .negative { color: var(--danger); }
-        .card-chart-mini {
-            height: 40px;
-            margin-top: 15px;
-        }
+        .card:hover { transform: translateY(-3px); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .card-title { font-size: 0.9rem; color: var(--gray); font-weight: 500; }
+        .card-icon { width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .card-value { font-size: 2.2rem; font-weight: 700; color: var(--text-main); line-height: 1; }
+        .card-subvalue { font-size: 0.8rem; color: var(--gray); margin-top: 5px; }
 
-        /* Seções */
-        .section { 
-            background: white; 
-            border-radius: var(--border-radius); 
-            padding: 30px; 
-            box-shadow: var(--shadow); 
-            margin-bottom: 40px; 
-            position: relative;
-            overflow: hidden;
-        }
-        .section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: var(--gradient-primary);
-        }
-        .section-title { 
-            font-family: 'Poppins', sans-serif; 
-            font-size: 1.6rem; 
-            font-weight: 700; 
-            color: var(--dark); 
-            margin-bottom: 25px; 
-            padding-bottom: 15px; 
-            border-bottom: 2px solid var(--light-gray);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .section-title i {
-            color: var(--primary);
-        }
+        .card-success .card-icon { background: rgba(39, 174, 96, 0.1); color: var(--success); }
+        .card-info .card-icon { background: rgba(26, 95, 180, 0.1); color: var(--primary); }
+        .card-warning .card-icon { background: rgba(230, 126, 34, 0.1); color: var(--secondary); }
 
-        /* Gráficos Avançados */
-        .charts-container { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); 
-            gap: 30px; 
-            margin-bottom: 40px; 
+        /* Charts */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
         }
         .chart-container { 
-            background: white; 
-            border-radius: var(--border-radius); 
-            padding: 30px; 
-            box-shadow: var(--shadow);
-            transition: all 0.3s;
+            height: 300px; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center;
         }
-        .chart-container:hover {
-            box-shadow: var(--shadow-lg);
-        }
-        .chart-title { 
-            font-family: 'Poppins', sans-serif; 
-            font-size: 1.3rem; 
-            font-weight: 600; 
-            color: var(--dark); 
+        
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
-        .chart-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .chart-btn {
-            padding: 6px 12px;
-            border: 1px solid var(--light-gray);
-            background: white;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-        .chart-btn:hover {
-            background: var(--light-gray);
-        }
-        .chart-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Dashboard Stats */
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-            gap: 25px; 
-            margin-bottom: 40px; 
-        }
-        .stat-card { 
-            background: white; 
-            border-radius: var(--border-radius); 
-            padding: 25px; 
-            box-shadow: var(--shadow); 
-            text-align: center;
-            transition: all 0.3s;
-            border-top: 4px solid transparent;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-        .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            opacity: 0.9;
-        }
-        .stat-value { 
-            font-size: 2.8rem; 
-            font-weight: 800; 
-            color: var(--primary); 
+        .input-group label {
+            display: block;
             margin-bottom: 5px;
-            font-family: 'Poppins', sans-serif;
-        }
-        .stat-label {
-            color: var(--gray);
-            font-size: 1rem;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .stat-trend {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 10px;
-            padding: 4px 12px;
-            border-radius: 20px;
             font-size: 0.9rem;
-            font-weight: 500;
         }
-        .trend-up { background: rgba(39, 174, 96, 0.1); color: var(--success); }
-        .trend-down { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
-
-        /* Progress Bars */
-        .progress-container {
-            margin: 20px 0;
+        .input-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .progress-bar {
-            height: 10px;
-            background: var(--light-gray);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: 5px;
-            transition: width 1s ease;
-        }
-
-        /* Configurações Avançadas */
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-        }
-        .settings-card {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
-        }
-        .settings-section-title {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--light-gray);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .settings-section-title i {
-            color: var(--primary);
-        }
-        .toggle-switch {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: var(--light-gray);
-            border-radius: var(--border-radius-sm);
-        }
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-        }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--success);
-        }
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-
-        /* Theme Selector */
-        .theme-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .theme-option {
-            padding: 20px;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        .theme-option:hover {
-            transform: scale(1.05);
-        }
-        .theme-option.active {
+        .input-control:focus {
+            outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(26, 95, 180, 0.2);
-        }
-        .theme-color {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin: 0 auto 10px;
-        }
-        .theme-blue { background: var(--gradient-primary); }
-        .theme-green { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
-        .theme-purple { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
-        .theme-red { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
-
-        /* Responsivo */
-        @media (max-width: 1200px) {
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
-            .settings-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        @media (max-width: 992px) {
-            .sidebar { 
-                transform: translateX(-100%); 
-                width: 280px;
-            }
-            .main-content { 
-                margin-left: 0; 
-                padding: 20px;
-            }
-            .sidebar.active { 
-                transform: translateX(0); 
-                box-shadow: var(--shadow-lg);
-            }
-            .main-content.active { 
-                margin-left: 280px; 
-            }
-            .menu-toggle { display: block; }
-        }
-        .menu-toggle { 
-            display: none; 
-            background: var(--primary); 
-            border: none; 
-            font-size: 1.5rem; 
-            color: white; 
-            cursor: pointer; 
-            padding: 10px 15px;
-            border-radius: var(--border-radius-sm);
-            transition: all 0.3s;
-        }
-        .menu-toggle:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
+            background-color: var(--bg-card);
         }
 
-        /* Utilitários */
-        .escalados-list { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
-            gap: 20px; 
-        }
-        .escalado-card { 
-            background: white; 
-            border-radius: var(--border-radius); 
-            padding: 20px; 
-            border-left: 5px solid var(--primary);
-            box-shadow: var(--shadow);
-            transition: all 0.3s;
-        }
-        .escalado-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .loading-overlay { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background: linear-gradient(135deg, rgba(245, 247, 250, 0.9) 0%, rgba(228, 232, 240, 0.9) 100%);
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 2000; 
-            flex-direction: column;
-            gap: 20px;
-        }
-        .spinner { 
-            border: 4px solid rgba(0, 0, 0, 0.1); 
-            border-radius: 50%; 
-            border-top: 4px solid var(--primary); 
-            width: 60px; 
-            height: 60px; 
-            animation: spin 1s linear infinite; 
-        }
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-        .loading-text {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.2rem;
-            color: var(--dark);
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
             font-weight: 500;
-        }
-
-        /* Toast & Modal */
-        .toast { 
-            position: fixed; 
-            bottom: 30px; 
-            right: 30px; 
-            padding: 18px 24px; 
-            border-radius: var(--border-radius); 
-            color: white; 
-            font-weight: 500; 
-            z-index: 2000; 
-            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            max-width: 400px; 
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .toast i {
-            font-size: 1.3rem;
-        }
-        @keyframes slideIn { 
-            from { transform: translateX(100%); opacity: 0; } 
-            to { transform: translateX(0); opacity: 1; } 
-        }
-        .toast-success { 
-            background: var(--gradient-success); 
-            border-left: 4px solid #27ae60;
-        }
-        .toast-error { 
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
-            border-left: 4px solid #c0392b;
-        }
-        .toast-warning { 
-            background: var(--gradient-secondary); 
-            border-left: 4px solid #d35400;
-        }
-        
-        .modal { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background: rgba(0, 0, 0, 0.7); 
-            z-index: 3000; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px;
-            animation: fadeIn 0.3s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .modal.active { 
-            display: flex; 
-        }
-        .modal-content { 
-            background: white; 
-            border-radius: var(--border-radius); 
-            padding: 40px; 
-            max-width: 600px; 
-            width: 100%; 
-            max-height: 90vh; 
-            overflow-y: auto; 
-            box-shadow: var(--shadow-lg);
-            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes modalSlideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .modal-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 30px; 
-        }
-        .modal-close { 
-            background: none; 
-            border: none; 
-            font-size: 2rem; 
-            cursor: pointer; 
-            color: var(--gray);
-            transition: all 0.3s;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        .modal-close:hover {
-            background: var(--light-gray);
-            color: var(--danger);
-        }
-
-        .connection-status {
-            position: fixed; 
-            bottom: 15px; 
-            right: 15px; 
-            padding: 8px 15px; 
-            border-radius: 20px; 
-            z-index: 2000;
-            font-size: 0.85rem;
-            font-weight: 500;
-            box-shadow: var(--shadow);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-        .status-ok { 
-            background: var(--gradient-success); 
-            color: white; 
-        }
-        .status-error { 
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
-            color: white; 
-        }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-secondary { background-color: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: var(--border-color); }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: #a71d2a; }
 
-        /* Quick Actions */
-        .quick-actions {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+        /* Settings */
+        .setting-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
         }
-        .quick-action-btn {
-            padding: 15px 25px;
-            background: white;
-            border: none;
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-            color: var(--dark);
+        .setting-info h4 { font-size: 1rem; margin-bottom: 5px; }
+        .setting-info p { font-size: 0.85rem; color: var(--gray); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #ccc; transition: .4s; border-radius: 34px; 
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; 
+            background-color: white; transition: .4s; border-radius: 50%; 
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Conexão Status */
+        .connection-status {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.8rem; padding: 5px 10px; border-radius: 4px;
+            position: fixed; top: 10px; right: 10px; z-index: 1000;
             box-shadow: var(--shadow);
-        }
-        .quick-action-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-            background: var(--primary);
             color: white;
         }
-        .quick-action-btn i {
-            font-size: 1.2rem;
-        }
+        .status-ok { background-color: var(--success); }
+        .status-error { background-color: var(--danger); }
 
-        /* Timeline */
-        .timeline {
-            position: relative;
-            padding-left: 30px;
+        /* Loading */
+        #loading-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
+            z-index: 2000; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; color: white;
+            transition: opacity 0.3s;
         }
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 15px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--light-gray);
-        }
-        .timeline-item {
-            position: relative;
-            margin-bottom: 25px;
-        }
-        .timeline-dot {
-            position: absolute;
-            left: -23px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
             border-radius: 50%;
-            background: var(--primary);
-            border: 3px solid white;
-            box-shadow: 0 0 0 3px rgba(26, 95, 180, 0.2);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
         }
-        .timeline-content {
-            background: var(--light-gray);
-            padding: 15px;
-            border-radius: var(--border-radius-sm);
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Toast */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2100; }
+        .toast { 
+            padding: 10px 20px; margin-top: 10px; border-radius: var(--radius); 
+            background: var(--bg-card); color: var(--text-main); 
+            box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px;
+            border-left: 5px solid;
+            animation: slideIn 0.3s forwards;
+        }
+        .toast-success { border-color: var(--success); }
+        .toast-error { border-color: var(--danger); }
+        .toast-info { border-color: var(--info); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Mobile */
+        .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); }
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .main-content.active { margin-left: 250px; }
+            .menu-toggle { display: block; }
+            .chart-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="loading-overlay" id="loading-overlay">
-            <div class="spinner"></div>
-            <div class="loading-text" id="loading-text">Conectando ao banco de dados...</div>
-        </div>
-        
-        <div id="connection-status" class="connection-status" style="display:none;"></div>
+<body data-theme="light">
+    
+    <div class="connection-status status-error" id="connection-status">
+        <i class="fas fa-sync fa-spin"></i> Testando Conexão...
+    </div>
 
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <p id="loading-text">Carregando dados...</p>
+    </div>
+
+    <div class="wrapper">
         <nav class="sidebar" id="sidebar">
-            <div class="logo">
-                <h1><i class="fas fa-church"></i> Verbo da Vida</h1>
-                <p>Zona Leste - Sistema de Gestão</p>
-            </div>
+            <div class="brand"><i class="fas fa-church"></i> VerboApp</div>
+            
             <ul class="nav-menu">
-                <li><a href="#dashboard" class="active" id="dashboard-tab"><i class="fas fa-chart-line"></i> Dashboard<span class="badge" id="dashboard-badge">3</span></a></li>
+                <li><a href="#dashboard" class="active" id="dashboard-tab"><i class="fas fa-chart-line"></i> Dashboard <span class="badge" id="dashboard-badge">0</span></a></li>
                 <li><a href="#registro" id="registro-tab"><i class="fas fa-plus-circle"></i> Novo Culto</a></li>
-                <li><a href="#historico" id="historico-tab"><i class="fas fa-history"></i> Histórico<span class="badge" id="historico-badge">12</span></a></li>
-                <li><a href="#escalas" id="escalas-tab"><i class="fas fa-users"></i> Escalas</a></li>
+                <li><a href="#historico" id="historico-tab"><i class="fas fa-history"></i> Histórico <span class="badge" id="historico-badge">0</span></a></li>
+                <li><a href="#escalas" id="escalas-tab"><i class="fas fa-clipboard-list"></i> Escalas</a></li>
                 <li><a href="#membros" id="membros-tab"><i class="fas fa-address-book"></i> Membros</a></li>
-                <li><a href="#relatorios" id="relatorios-tab"><i class="fas fa-chart-bar"></i> Analytics</a></li>
                 <li><a href="#configuracoes" id="configuracoes-tab"><i class="fas fa-cog"></i> Configurações</a></li>
             </ul>
-            <div style="padding: 25px; margin-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                <div style="display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.9);">
-                    <div class="user-avatar" style="width: 40px; height: 40px; font-size: 1rem;">AD</div>
-                    <div>
-                        <div style="font-weight: 500;">Admin</div>
-                        <div style="font-size: 0.8rem; opacity: 0.8;">Administrador</div>
-                    </div>
-                </div>
-                <button class="quick-action-btn" style="width: 100%; margin-top: 15px; background: rgba(255, 255, 255, 0.1); color: white; justify-content: center;" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Sair
-                </button>
+            
+            <div style="margin-top: 50px;">
+                <button class="btn btn-secondary" style="width:100%;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </div>
         </nav>
 
         <main class="main-content" id="main-content">
-            <header>
-                <div class="header-left" style="display:flex; align-items:center;">
-                    <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button>
-                    <div class="header-title">
-                        <h2 id="page-title"><i class="fas fa-chart-line"></i> Dashboard</h2>
-                        <p id="page-subtitle">Estatísticas em tempo real do ministério</p>
+            <div class="top-bar">
+                <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button>
+                <div class="page-title" id="current-title">Dashboard</div>
+                <div class="user-profile">
+                    <div class="user-avatar">AD</div>
+                    <div class="user-info">
+                        <span>Admin</span>
+                        <small>Coordenador</small>
                     </div>
                 </div>
-                <div class="user-info">
-                    <div class="notification-bell" onclick="showNotifications()">
-                        <i class="fas fa-bell"></i>
-                        <div class="notification-badge" id="notification-count">3</div>
-                    </div>
-                    <div class="user-avatar" onclick="openUserMenu()">AD</div>
-                </div>
-            </header>
-
-            <!-- QUICK ACTIONS -->
-            <div class="quick-actions" id="quick-actions">
-                <!-- Serão preenchidas pelo JavaScript -->
             </div>
 
-            <!-- DASHBOARD -->
-            <section id="dashboard" class="tab-content active">
-                <div class="cards-container" id="dashboard-cards">
-                    <!-- Cards serão preenchidos pelo JS -->
-                </div>
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid" id="dashboard-cards">
+                    </div>
                 
-                <div class="charts-container">
-                    <div class="chart-container">
-                        <div class="chart-title">
-                            <span>Frequência por Tipo de Culto</span>
-                            <div class="chart-actions">
-                                <button class="chart-btn active" onclick="changeChartType('type', 'doughnut')">Rosca</button>
-                                <button class="chart-btn" onclick="changeChartType('type', 'bar')">Barras</button>
-                                <button class="chart-btn" onclick="changeChartType('type', 'line')">Linha</button>
-                            </div>
-                        </div>
-                        <canvas id="cultoTypeChart"></canvas>
+                <div class="chart-grid">
+                    <div class="section">
+                        <h3 class="section-title">Tendência de Público</h3>
+                        <div class="chart-container"><canvas id="growthChart"></canvas></div>
                     </div>
-                    <div class="chart-container">
-                        <div class="chart-title">
-                            <span>Demografia do Público</span>
-                            <div class="chart-actions">
-                                <button class="chart-btn active" onclick="changeChartType('demo', 'bar')">Barras</button>
-                                <button class="chart-btn" onclick="changeChartType('demo', 'pie')">Pizza</button>
-                            </div>
-                        </div>
-                        <canvas id="demographicsChart"></canvas>
+                    <div class="section">
+                        <h3 class="section-title">Distribuição por Gênero</h3>
+                        <div class="chart-container" style="height: 250px;"><canvas id="demographicsChart"></canvas></div>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3 class="section-title"><i class="fas fa-chart-area"></i> Tendência de Crescimento</h3>
-                    <div class="chart-container">
-                        <canvas id="growthChart"></canvas>
+                    <h3 class="section-title">Atividade Recente</h3>
+                    <div class="table-responsive">
+                        <table class="table" style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="border-bottom:2px solid #eee; text-align:left;">
+                                    <th style="padding:15px;">Data</th>
+                                    <th style="padding:15px;">Tipo</th>
+                                    <th style="padding:15px;">Público</th>
+                                    <th style="padding:15px;">Ministro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timeline-events">
+                                </tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
 
+            <div id="registro" class="tab-content">
                 <div class="section">
-                    <h3 class="section-title"><i class="fas fa-calendar-check"></i> Próximos Eventos</h3>
-                    <div class="timeline" id="timeline-events">
-                        <!-- Timeline será preenchida -->
-                    </div>
+                    <h3 class="section-title"><i class="fas fa-plus-circle"></i> Registrar Novo Culto</h3>
+                    <form id="culto-form">
+                        
+                        <h4 style="margin-top:20px; margin-bottom:10px; color:var(--primary);">Informações Básicas</h4>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="data-culto">Data do Culto</label>
+                                <input type="date" id="data-culto" class="input-control" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="dia-semana">Dia da Semana</label>
+                                <select id="dia-semana" class="input-control" required>
+                                    <option value="Domingo">Domingo</option>
+                                    <option value="Segunda">Segunda-feira</option>
+                                    <option value="Terça">Terça-feira</option>
+                                    <option value="Quarta">Quarta-feira</option>
+                                    <option value="Quinta">Quinta-feira</option>
+                                    <option value="Sexta">Sexta-feira</option>
+                                    <option value="Sábado">Sábado</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="tipo-culto">Tipo de Culto</label>
+                                <select id="tipo-culto" class="input-control" required>
+                                    <option value="Culto da Família">Culto da Família</option>
+                                    <option value="Culto de Oração">Culto de Oração</option>
+                                    <option value="Culto de Jovens">Culto de Jovens</option>
+                                    <option value="Santa Ceia">Santa Ceia</option>
+                                    <option value="Especial">Especial</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="input-group"><label for="hora-inicio">Início</label><input type="time" id="hora-inicio" class="input-control" value="19:30" required></div>
+                            <div class="input-group"><label for="hora-termino">Término</label><input type="time" id="hora-termino" class="input-control" value="21:30" required></div>
+                            <div class="input-group"><label for="tempo-ministerio">Duração Palavra (min)</label><input type="number" id="tempo-ministerio" class="input-control" value="60"></div>
+                        </div>
+                        
+                        <h4 style="margin-top:30px; margin-bottom:10px; color:var(--primary);">Contagem de Pessoas</h4>
+                        <div class="form-grid">
+                            <div class="input-group"><label for="homens">Homens</label><input type="number" id="homens" class="input-control" value="0"></div>
+                            <div class="input-group"><label for="mulheres">Mulheres</label><input type="number" id="mulheres" class="input-control" value="0"></div>
+                            <div class="input-group"><label for="criancas">Crianças</label><input type="number" id="criancas" class="input-control" value="0"></div>
+                            <div class="input-group"><label for="total-presentes">Total Geral</label><input type="number" id="total-presentes" class="input-control" readonly style="font-weight:bold; background-color: var(--bg-main);"></div>
+                        </div>
+
+                        <h4 style="margin-top:30px; margin-bottom:10px; color:var(--primary);">Equipes e Liderança</h4>
+                        <div class="form-grid">
+                            <div class="input-group"><label for="ministro">Ministro da Palavra</label><input type="text" id="ministro" class="input-control" required></div>
+                            <div class="input-group"><label for="dirigente">Dirigente do Culto</label><input type="text" id="dirigente" class="input-control"></div>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="input-group"><label for="diaconato">Diaconato (Nomes)</label><input type="text" id="diaconato" class="input-control" placeholder="Separar por vírgula"></div>
+                            <div class="input-group"><label for="infantil">Infantil (Nomes)</label><input type="text" id="infantil" class="input-control"></div>
+                            <div class="input-group"><label for="musica">Música (Nomes)</label><input type="text" id="musica" class="input-control"></div>
+                            <div class="input-group"><label for="midia">Mídia (Nomes)</label><input type="text" id="midia" class="input-control"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="observacoes">Observações</label>
+                            <textarea id="observacoes" class="input-control" rows="3" placeholder="Informações adicionais, ocorrências..."></textarea>
+                        </div>
+                        
+                        <div style="margin-top:30px; display:flex; gap:15px;">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Registro</button>
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('culto-form').reset()"><i class="fas fa-redo"></i> Limpar</button>
+                        </div>
+                    </form>
                 </div>
-            </section>
-
-            <!-- CONFIGURAÇÕES AVANÇADAS -->
-            <section id="configuracoes" class="tab-content">
-                <div class="settings-grid">
-                    <div class="settings-card">
-                        <h4 class="settings-section-title"><i class="fas fa-paint-brush"></i> Aparência</h4>
-                        
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Tema Escuro</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">Ativar modo noturno</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
-                                <span class="slider"></span>
-                            </label>
+            </div>
+            
+            <div id="historico" class="tab-content">
+                <div class="section">
+                    <h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>
+                    <div id="historico-table-container">
                         </div>
-
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Animações</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">Efeitos visuais suaves</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="animations-toggle" checked onchange="toggleAnimations()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div style="margin-top: 25px;">
-                            <div style="font-weight: 500; margin-bottom: 15px;">Cor do Tema</div>
-                            <div class="theme-selector">
-                                <div class="theme-option active" onclick="changeTheme('blue')">
-                                    <div class="theme-color theme-blue"></div>
-                                    <div>Azul</div>
-                                </div>
-                                <div class="theme-option" onclick="changeTheme('green')">
-                                    <div class="theme-color theme-green"></div>
-                                    <div>Verde</div>
-                                </div>
-                                <div class="theme-option" onclick="changeTheme('purple')">
-                                    <div class="theme-color theme-purple"></div>
-                                    <div>Roxo</div>
-                                </div>
-                                <div class="theme-option" onclick="changeTheme('red')">
-                                    <div class="theme-color theme-red"></div>
-                                    <div>Vermelho</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <h4 class="settings-section-title"><i class="fas fa-bell"></i> Notificações</h4>
-                        
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Email de Relatórios</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">Relatórios semanais automáticos</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="email-reports-toggle" checked onchange="toggleEmailReports()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Lembretes de Culto</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">24h antes de cada culto</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="culto-reminders-toggle" checked onchange="toggleCultoReminders()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Notificações Push</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">No navegador</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="push-notifications-toggle" onchange="togglePushNotifications()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="form-group" style="margin-top: 25px;">
-                            <label>Frequência de Relatórios</label>
-                            <select class="form-control" id="report-frequency" onchange="updateReportFrequency()">
-                                <option value="daily">Diário</option>
-                                <option value="weekly" selected>Semanal</option>
-                                <option value="monthly">Mensal</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <h4 class="settings-section-title"><i class="fas fa-database"></i> Backup & Segurança</h4>
-                        
-                        <div class="progress-container">
-                            <div class="progress-label">
-                                <span>Espaço em Uso</span>
-                                <span id="storage-used">65%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="storage-progress" style="width: 65%"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 25px;">
-                            <button class="btn btn-primary" onclick="createBackup()" style="margin-bottom: 15px;">
-                                <i class="fas fa-download"></i> Criar Backup Agora
-                            </button>
-                            <button class="btn btn-secondary" onclick="restoreBackup()" style="margin-bottom: 15px;">
-                                <i class="fas fa-upload"></i> Restaurar Backup
-                            </button>
-                            <button class="btn btn-danger" onclick="clearData()" style="margin-bottom: 15px;">
-                                <i class="fas fa-trash"></i> Limpar Dados Antigos
-                            </button>
-                        </div>
-
-                        <div class="toggle-switch" style="margin-top: 25px;">
-                            <div>
-                                <div style="font-weight: 500;">Backup Automático</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">Toda semana às 02:00</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="auto-backup-toggle" checked onchange="toggleAutoBackup()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <h4 class="settings-section-title"><i class="fas fa-users-cog"></i> Permissões</h4>
-                        
-                        <div class="form-group">
-                            <label>Nível de Acesso Padrão</label>
-                            <select class="form-control" id="default-access-level">
-                                <option value="view">Apenas Visualização</option>
-                                <option value="edit" selected>Edição Limitada</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
-
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Registro Público</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">Permitir registro por membros</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="public-registration-toggle" onchange="togglePublicRegistration()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div class="toggle-switch">
-                            <div>
-                                <div style="font-weight: 500;">Modo de Manutenção</div>
-                                <div style="font-size: 0.9rem; color: var(--gray);">Somente administradores</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="maintenance-mode-toggle" onchange="toggleMaintenanceMode()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div style="margin-top: 25px;">
-                            <button class="btn btn-info" onclick="manageUsers()">
-                                <i class="fas fa-user-shield"></i> Gerenciar Usuários
-                            </button>
-                        </div>
-                    </div>
                 </div>
+            </div>
 
-                <div class="section" style="margin-top: 30px;">
-                    <h3 class="section-title"><i class="fas fa-info-circle"></i> Sobre o Sistema</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        <div>
-                            <div style="font-weight: 500; color: var(--gray);">Versão</div>
-                            <div style="font-size: 1.2rem; font-weight: 600;">2.1.0</div>
+            <div id="escalas" class="tab-content">
+                <div class="section">
+                    <h3 class="section-title"><i class="fas fa-clipboard-list"></i> Escalas Recentes</h3>
+                    <div class="dashboard-grid" id="lista-escalas">
                         </div>
-                        <div>
-                            <div style="font-weight: 500; color: var(--gray);">Última Atualização</div>
-                            <div style="font-size: 1.2rem; font-weight: 600;" id="last-update">12/12/2023</div>
-                        </div>
-                        <div>
-                            <div style="font-weight: 500; color: var(--gray);">Cultos Registrados</div>
-                            <div style="font-size: 1.2rem; font-weight: 600;" id="total-cultos-count">0</div>
-                        </div>
-                        <div>
-                            <div style="font-weight: 500; color: var(--gray);">Uptime</div>
-                            <div style="font-size: 1.2rem; font-weight: 600;" id="uptime">99.8%</div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="checkForUpdates()" style="margin-top: 20px;">
-                        <i class="fas fa-sync-alt"></i> Verificar Atualizações
-                    </button>
                 </div>
-            </section>
+            </div>
 
-            <!-- OUTRAS SEÇÕES (mantidas como antes) -->
-            <section id="registro" class="tab-content">
-                <!-- ... conteúdo mantido ... -->
-            </section>
+            <div id="membros" class="tab-content">
+                <div class="section">
+                    <h3 class="section-title"><i class="fas fa-address-book"></i> Gestão de Membros</h3>
+                    <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px;"><i class="fas fa-user-plus"></i> Novo Membro</button>
+                    <div id="membros-table-container">
+                        </div>
+                </div>
+            </div>
 
-            <section id="historico" class="tab-content">
-                <!-- ... conteúdo mantido ... -->
-            </section>
+            <div id="configuracoes" class="tab-content">
+                <div class="section" style="max-width: 600px; margin: 0 auto;">
+                    <h3 class="section-title"><i class="fas fa-cog"></i> Configurações do Sistema</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Modo Escuro (Dark Mode)</h4>
+                            <p>Alterna o esquema de cores para o modo noturno.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-toggle" onchange="toggleDarkMode(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-            <section id="escalas" class="tab-content">
-                <!-- ... conteúdo mantido ... -->
-            </section>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Exportar Dados (Backup)</h4>
+                            <p>Baixe todos os dados registrados em formato CSV.</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="exportData()"><i class="fas fa-download"></i> Exportar</button>
+                    </div>
+                    
+                    <div class="setting-item" style="border-bottom: none;">
+                        <div class="setting-info">
+                            <h4 style="color: var(--danger);">Resetar Dados</h4>
+                            <p>Apaga permanentemente todos os registros do banco de dados.</p>
+                        </div>
+                        <button class="btn btn-danger" onclick="alert('Funcionalidade de Reset bloqueada na demonstração.')"><i class="fas fa-trash-alt"></i> Resetar</button>
+                    </div>
 
-            <section id="membros" class="tab-content">
-                <!-- ... conteúdo mantido ... -->
-            </section>
+                </div>
+            </div>
 
-            <section id="relatorios" class="tab-content">
-                <!-- ... conteúdo mantido ... -->
-            </section>
         </main>
     </div>
 
-    <!-- MODAIS (mantidos) -->
-    <div class="modal" id="modal-detalhes">
-        <!-- ... conteúdo mantido ... -->
-    </div>
-
-    <div class="modal" id="modal-membro">
-        <!-- ... conteúdo mantido ... -->
-    </div>
-
-    <!-- NOVO MODAL DE NOTIFICAÇÕES -->
-    <div class="modal" id="modal-notifications">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-bell"></i> Notificações</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div id="notifications-list">
-                <!-- Lista de notificações será preenchida aqui -->
-            </div>
+    <div class="modal" id="modal-membro" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+        <div class="modal-content" style="background:var(--bg-card); padding:30px; border-radius:var(--radius); width:90%; max-width:450px; box-shadow:var(--shadow);">
+            <h3 class="section-title" style="border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:20px;">Adicionar Membro</h3>
+            <form id="form-membro">
+                <div class="input-group" style="margin-bottom:15px;">
+                    <label for="membro-nome">Nome Completo</label>
+                    <input type="text" id="membro-nome" class="input-control" required>
+                </div>
+                <div class="input-group" style="margin-bottom:15px;">
+                    <label for="membro-email">Email</label>
+                    <input type="email" id="membro-email" class="input-control">
+                </div>
+                <div class="input-group" style="margin-bottom:25px;">
+                    <label for="membro-departamentos">Departamentos (separar por vírgula)</label>
+                    <input type="text" id="membro-departamentos" class="input-control" placeholder="Ex: Diaconato, Louvor, Infantil">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn btn-secondary modal-close" onclick="document.getElementById('modal-membro').style.display='none'">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+                </div>
+            </form>
         </div>
     </div>
-
+    
     <div id="toast-container"></div>
 
-  <script>
-    // --- 1. CONFIGURAÇÃO SUPABASE ---
-    // Substitua pela sua URL e Key se forem diferentes
-    const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw'; 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- 2. ESTADO GLOBAL ---
-    let estado = { 
-        cultos: [], 
-        escalas: [], 
-        membros: [], 
-        configs: {
-            theme: 'blue',
-            darkMode: false,
-            animations: true
-        }, 
-        charts: {}
-    };
-
-    // Cores dos temas
-    const themes = {
-        blue: { primary: '#1a5fb4', gradient: 'linear-gradient(135deg, #1a5fb4 0%, #4a8ad4 100%)' },
-        green: { primary: '#27ae60', gradient: 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)' },
-        purple: { primary: '#9b59b6', gradient: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)' },
-        red: { primary: '#e74c3c', gradient: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)' }
-    };
-
-    // --- 3. INICIALIZAÇÃO ---
-    document.addEventListener('DOMContentLoaded', async () => {
-        cacheDOM();
-        bindEvents();
+    <script>
+        // --- 1. CONFIGURAÇÃO SUPABASE (CORRIGIDO) ---
+        const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw'; 
         
-        // Verifica conexão
-        await checkConnection();
-        
-        // Carrega dados
-        await carregarDados();
-        
-        // Renderiza Interface Inicial
-        initQuickActions();
-        updateBadges();
-        
-        document.getElementById('loading-overlay').style.display = 'none';
-    });
+        // Criando o cliente Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- 4. FUNÇÕES DE BANCO DE DADOS (CRUD) ---
-
-    async function checkConnection() {
-        const statusEl = document.getElementById('connection-status');
-        statusEl.style.display = 'flex';
-        
-        try {
-            const { count, error } = await supabase.from('cultos').select('*', { count: 'exact', head: true });
-            
-            if (error) throw error;
-            
-            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Supabase Conectado';
-            statusEl.className = 'connection-status status-ok';
-        } catch (e) {
-            console.error("Erro conexão:", e);
-            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão';
-            statusEl.className = 'connection-status status-error';
-            mostrarToast("Erro ao conectar ao banco de dados.", "error");
-        }
-    }
-
-    async function carregarDados() {
-        try {
-            const [resCultos, resEscalas, resMembros] = await Promise.all([
-                supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
-                supabase.from('escalas').select('*'),
-                supabase.from('membros').select('*').order('nome')
-            ]);
-
-            estado.cultos = resCultos.data || [];
-            estado.escalas = resEscalas.data || [];
-            estado.membros = resMembros.data || [];
-
-            atualizarUI();
-            
-        } catch (err) {
-            console.error(err);
-            mostrarToast('Erro ao carregar dados do servidor.', 'error');
-        }
-    }
-
-    async function salvarCulto(e) {
-        e.preventDefault();
-        
-        // Pega valores do formulário (Ids devem existir no HTML)
-        const novoCulto = {
-            data_culto: document.getElementById('data-culto').value,
-            dia_semana: document.getElementById('dia-semana').value,
-            tipo_culto: document.getElementById('tipo-culto').value,
-            hora_inicio: document.getElementById('hora-inicio').value,
-            hora_termino: document.getElementById('hora-termino').value,
-            tempo_ministerio: parseInt(document.getElementById('tempo-ministerio').value) || 0,
-            homens: parseInt(document.getElementById('homens').value) || 0,
-            mulheres: parseInt(document.getElementById('mulheres').value) || 0,
-            criancas: parseInt(document.getElementById('criancas').value) || 0,
-            ministro: document.getElementById('ministro').value,
-            dirigente: document.getElementById('dirigente').value,
-            observacoes: document.getElementById('observacoes').value
+        // --- 2. ESTADO GLOBAL ---
+        let estado = { 
+            cultos: [], 
+            escalas: [], 
+            membros: [], 
+            charts: {},
+            theme: localStorage.getItem('app-theme') || 'light'
         };
 
-        const loadingText = document.getElementById('loading-text');
-        const overlay = document.getElementById('loading-overlay');
-        
-        try {
-            loadingText.innerText = "Salvando Culto...";
-            overlay.style.display = 'flex';
+        // --- 3. INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Aplica tema
+            document.body.setAttribute('data-theme', estado.theme);
+            document.getElementById('theme-toggle').checked = estado.theme === 'dark';
+            
+            cacheDOM();
+            bindEvents();
+            
+            // Tenta a conexão e carrega os dados
+            await checkConnection();
+            await carregarDados();
+            
+            document.getElementById('loading-overlay').style.display = 'none';
+        });
 
-            // 1. Salvar Culto
-            const { data: culto, error } = await supabase.from('cultos').insert(novoCulto).select().single();
-            if (error) throw error;
+        // --- 4. FUNÇÕES DE CONEXÃO E DADOS ---
 
-            // 2. Salvar Escalas
-            const escalasInputs = [
-                { dept: 'Diaconato', val: document.getElementById('diaconato').value },
-                { dept: 'Infantil', val: document.getElementById('infantil').value },
-                { dept: 'Música', val: document.getElementById('musica').value },
-                { dept: 'Mídia', val: document.getElementById('midia').value }
-            ];
-
-            const escalasParaSalvar = escalasInputs
-                .filter(s => s.val && s.val.trim() !== "")
-                .map(s => ({ 
-                    culto_id: culto.id, 
-                    departamento: s.dept, 
-                    nomes: s.val 
-                }));
-
-            if (escalasParaSalvar.length > 0) {
-                const { error: errorEscalas } = await supabase.from('escalas').insert(escalasParaSalvar);
-                if (errorEscalas) throw errorEscalas;
+        async function checkConnection() {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.classList.remove('status-error');
+            statusEl.classList.add('status-ok'); 
+            statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
+            
+            try {
+                // Tenta fazer uma consulta simples para validar a conexão
+                const { error } = await supabase.from('cultos').select('id', { count: 'exact', head: true });
+                
+                if (error) throw error;
+                
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Supabase Conectado';
+                statusEl.classList.remove('status-error');
+                statusEl.classList.add('status-ok');
+            } catch (e) {
+                console.error("Erro na conexão Supabase:", e);
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão';
+                statusEl.classList.remove('status-ok');
+                statusEl.classList.add('status-error');
+                mostrarToast("Falha ao conectar ao banco de dados.", "error");
             }
+        }
 
-            mostrarToast('Culto registrado com sucesso!', 'success');
-            document.getElementById('culto-form').reset();
+        async function carregarDados() {
+            document.getElementById('loading-text').innerText = "Carregando dados...";
             
-            // Recarregar
-            await carregarDados();
-            document.getElementById('dashboard-tab').click();
+            try {
+                const [resCultos, resEscalas, resMembros] = await Promise.all([
+                    supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
+                    supabase.from('escalas').select('*'),
+                    supabase.from('membros').select('*').order('nome')
+                ]);
 
-        } catch (error) {
-            console.error(error);
-            mostrarToast('Erro ao salvar: ' + error.message, 'error');
-        } finally {
-            overlay.style.display = 'none';
-        }
-    }
+                estado.cultos = resCultos.data || [];
+                estado.escalas = resEscalas.data || [];
+                estado.membros = resMembros.data || [];
 
-    async function deletarCulto(id) {
-        if(!confirm('Tem certeza que deseja excluir este culto? Todas as escalas associadas serão removidas.')) return;
-        
-        try {
-            const { error } = await supabase.from('cultos').delete().eq('id', id);
-            if (error) throw error;
-            
-            mostrarToast('Culto removido com sucesso.', 'success');
-            await carregarDados();
-        } catch (err) {
-            mostrarToast('Erro ao deletar: ' + err.message, 'error');
-        }
-    }
-
-    // --- 5. RENDERIZAÇÃO DA UI ---
-
-    function atualizarUI() {
-        renderDashboard();
-        renderHistorico();
-        renderEscalas();
-        renderMembros();
-        updateBadges();
-    }
-
-    function renderDashboard() {
-        const totalCultos = estado.cultos.length;
-        const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
-        const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
-        const totalMembros = estado.membros.length;
-        
-        // Cards
-        document.getElementById('dashboard-cards').innerHTML = `
-            <div class="card card-success">
-                <div class="card-header">
-                    <div class="card-title">Cultos Realizados</div>
-                    <div class="card-icon icon-green"><i class="fas fa-church"></i></div>
-                </div>
-                <div class="card-value">${totalCultos}</div>
-                <div class="card-subvalue">Registrados no sistema</div>
-            </div>
-            <div class="card card-info">
-                <div class="card-header">
-                    <div class="card-title">Média de Público</div>
-                    <div class="card-icon icon-blue"><i class="fas fa-users"></i></div>
-                </div>
-                <div class="card-value">${mediaPublico}</div>
-                <div class="card-subvalue">Total: ${totalPublico} pessoas</div>
-            </div>
-            <div class="card card-warning">
-                <div class="card-header">
-                    <div class="card-title">Membros Ativos</div>
-                    <div class="card-icon icon-orange"><i class="fas fa-user-check"></i></div>
-                </div>
-                <div class="card-value">${totalMembros}</div>
-                <div class="card-subvalue">${estado.membros.filter(m => m.ativo).length} ativos</div>
-            </div>
-        `;
-
-        renderCharts();
-        renderTimeline();
-    }
-
-    function renderCharts() {
-        if(estado.cultos.length === 0) return;
-
-        // Gráfico de Tipos
-        const tipos = {};
-        estado.cultos.forEach(c => tipos[c.tipo_culto] = (tipos[c.tipo_culto] || 0) + 1);
-        
-        const ctxType = document.getElementById('cultoTypeChart').getContext('2d');
-        if(estado.charts.type) estado.charts.type.destroy();
-        estado.charts.type = new Chart(ctxType, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(tipos),
-                datasets: [{
-                    data: Object.values(tipos),
-                    backgroundColor: ['#1a5fb4', '#27ae60', '#f39c12', '#9b59b6', '#e74c3c'],
-                    borderWidth: 0
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'right' } } }
-        });
-
-        // Gráfico de Crescimento (Linha)
-        // Pega os últimos 10 cultos, inverte para ficar cronológico
-        const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
-        const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
-        const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
-
-        const ctxGrowth = document.getElementById('growthChart').getContext('2d');
-        if(estado.charts.growth) estado.charts.growth.destroy();
-        estado.charts.growth = new Chart(ctxGrowth, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Público Total',
-                    data: dataTotal,
-                    borderColor: '#1a5fb4',
-                    backgroundColor: 'rgba(26, 95, 180, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Gráfico Demográfico
-        const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
-        const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
-        const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
-        
-        const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
-        if(estado.charts.demo) estado.charts.demo.destroy();
-        estado.charts.demo = new Chart(ctxDemo, {
-            type: 'bar',
-            data: {
-                labels: ['Homens', 'Mulheres', 'Crianças'],
-                datasets: [{
-                    label: 'Total Acumulado',
-                    data: [totalH, totalM, totalC],
-                    backgroundColor: ['#3498db', '#e91e63', '#f1c40f'],
-                    borderRadius: 5
-                }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-    }
-
-    function renderHistorico() {
-        // Verifica se a tabela existe na seção de histórico, se não, cria
-        const historicoContainer = document.querySelector('#historico .section');
-        if(!historicoContainer) return;
-
-        let tabelaHTML = `
-            <div class="table-responsive">
-                <table class="table" style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="border-bottom:2px solid #eee; text-align:left;">
-                            <th style="padding:15px;">Data</th>
-                            <th style="padding:15px;">Tipo</th>
-                            <th style="padding:15px;">Público</th>
-                            <th style="padding:15px;">Ministro</th>
-                            <th style="padding:15px;">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${estado.cultos.map(c => `
-                            <tr style="border-bottom:1px solid #eee;">
-                                <td style="padding:15px;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
-                                <td style="padding:15px;">${c.tipo_culto}</td>
-                                <td style="padding:15px;"><strong>${c.homens+c.mulheres+c.criancas}</strong></td>
-                                <td style="padding:15px;">${c.ministro}</td>
-                                <td style="padding:15px;">
-                                    <button class="btn" style="color:var(--danger); cursor:pointer; background:none; border:none;" onclick="deletarCulto(${c.id})"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        
-        // Substitui o conteúdo da section para garantir que a tabela apareça
-        if (estado.cultos.length > 0) {
-            historicoContainer.innerHTML = `<h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>` + tabelaHTML;
-        } else {
-            historicoContainer.innerHTML = `<h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3><p style="text-align:center; padding:20px; color:#999;">Nenhum culto registrado.</p>`;
-        }
-    }
-
-    function renderEscalas() {
-        const container = document.getElementById('lista-escalas');
-        if(!container) return; // Se o elemento não existir no HTML fornecido
-        
-        container.innerHTML = '';
-        const ultimosCultos = estado.cultos.slice(0, 10);
-
-        ultimosCultos.forEach(culto => {
-            const escalasCulto = estado.escalas.filter(e => e.culto_id === culto.id);
-            if(escalasCulto.length === 0) return;
-
-            const card = document.createElement('div');
-            card.className = 'escalado-card';
-            card.innerHTML = `
-                <div style="font-weight:bold; margin-bottom:10px; color:var(--primary); border-bottom:1px solid #eee; padding-bottom:5px;">
-                    ${new Date(culto.data_culto).toLocaleDateString('pt-BR')} - ${culto.tipo_culto}
-                </div>
-                ${escalasCulto.map(e => `
-                    <div style="font-size:0.9rem; margin-bottom:5px;">
-                        <span style="font-weight:600; color:#555;">${e.departamento}:</span> ${e.nomes}
-                    </div>
-                `).join('')}
-            `;
-            container.appendChild(card);
-        });
-    }
-    
-    function renderMembros() {
-        // Lógica similar para membros, verificando se a tabela existe
-        const membrosContainer = document.querySelector('#membros .section');
-        if(!membrosContainer) return;
-
-        membrosContainer.innerHTML = `
-            <h3 class="section-title"><i class="fas fa-address-book"></i> Lista de Membros</h3>
-            <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:5px; cursor:pointer;"><i class="fas fa-plus"></i> Novo Membro</button>
-            <div class="table-responsive">
-                <table class="table" style="width:100%; text-align:left;">
-                    <thead><tr><th style="padding:10px;">Nome</th><th style="padding:10px;">Depto</th><th style="padding:10px;">Ações</th></tr></thead>
-                    <tbody>
-                        ${estado.membros.map(m => `
-                            <tr style="border-bottom:1px solid #eee;">
-                                <td style="padding:10px;">${m.nome}</td>
-                                <td style="padding:10px;">${(m.departamentos||[]).join(', ')}</td>
-                                <td style="padding:10px;"><button style="color:red; background:none; border:none; cursor:pointer;" onclick="deletarMembro(${m.id})"><i class="fas fa-trash"></i></button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-
-    async function salvarMembro(e) {
-        e.preventDefault();
-        const nome = document.getElementById('membro-nome').value;
-        const email = document.getElementById('membro-email').value;
-        const deptos = document.getElementById('membro-departamentos').value.split(',').map(s => s.trim());
-        
-        try {
-            const { error } = await supabase.from('membros').insert({ nome, email, departamentos: deptos });
-            if (error) throw error;
-            
-            mostrarToast('Membro cadastrado!', 'success');
-            document.getElementById('modal-membro').classList.remove('active');
-            carregarDados();
-        } catch (err) {
-            mostrarToast('Erro: ' + err.message, 'error');
-        }
-    }
-
-    async function deletarMembro(id) {
-        if(!confirm('Excluir membro?')) return;
-        const { error } = await supabase.from('membros').delete().eq('id', id);
-        if(!error) {
-            mostrarToast('Membro excluído', 'success');
-            carregarDados();
-        }
-    }
-
-    // --- 6. HELPERS ---
-
-    function cacheDOM() {
-        // Elementos de formulário
-        const formCulto = document.getElementById('culto-form');
-        if(formCulto) formCulto.addEventListener('submit', salvarCulto);
-        
-        // Modal Membro
-        const formMembro = document.getElementById('form-membro');
-        if(formMembro) formMembro.addEventListener('submit', salvarMembro);
-
-        // Inputs de soma automática
-        ['homens', 'mulheres', 'criancas'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.addEventListener('input', calcularTotal);
-        });
-
-        // Define data de hoje
-        const dateInput = document.getElementById('data-culto');
-        if(dateInput) dateInput.valueAsDate = new Date();
-    }
-
-    function bindEvents() {
-        // Tabs Navegação
-        document.querySelectorAll('.nav-menu a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Remove active classes
-                document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                atualizarUI();
                 
-                // Add active
-                link.classList.add('active');
-                const targetId = link.getAttribute('href').substring(1);
-                document.getElementById(targetId).classList.add('active');
-                
-                // Mobile close
-                if(window.innerWidth < 992) {
-                    document.getElementById('sidebar').classList.remove('active');
-                    document.getElementById('main-content').classList.remove('active');
+            } catch (err) {
+                console.error("Erro ao carregar dados:", err);
+                mostrarToast('Erro ao carregar dados do servidor.', 'error');
+            }
+        }
+
+        async function salvarCulto(e) {
+            e.preventDefault();
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Salvando Culto...";
+            
+            const novoCulto = {
+                data_culto: document.getElementById('data-culto').value,
+                dia_semana: document.getElementById('dia-semana').value,
+                tipo_culto: document.getElementById('tipo-culto').value,
+                hora_inicio: document.getElementById('hora-inicio').value,
+                hora_termino: document.getElementById('hora-termino').value,
+                tempo_ministerio: parseInt(document.getElementById('tempo-ministerio').value) || 0,
+                homens: parseInt(document.getElementById('homens').value) || 0,
+                mulheres: parseInt(document.getElementById('mulheres').value) || 0,
+                criancas: parseInt(document.getElementById('criancas').value) || 0,
+                ministro: document.getElementById('ministro').value,
+                dirigente: document.getElementById('dirigente').value,
+                observacoes: document.getElementById('observacoes').value
+            };
+
+            try {
+                // 1. Salvar Culto
+                const { data: culto, error } = await supabase.from('cultos').insert(novoCulto).select().single();
+                if (error) throw error;
+
+                // 2. Salvar Escalas
+                const escalasInputs = [
+                    { dept: 'Diaconato', val: document.getElementById('diaconato').value },
+                    { dept: 'Infantil', val: document.getElementById('infantil').value },
+                    { dept: 'Música', val: document.getElementById('musica').value },
+                    { dept: 'Mídia', val: document.getElementById('midia').value }
+                ];
+
+                const escalasParaSalvar = escalasInputs
+                    .filter(s => s.val && s.val.trim() !== "")
+                    .map(s => ({ 
+                        culto_id: culto.id, 
+                        departamento: s.dept, 
+                        nomes: s.val 
+                    }));
+
+                if (escalasParaSalvar.length > 0) {
+                    const { error: errorEscalas } = await supabase.from('escalas').insert(escalasParaSalvar);
+                    if (errorEscalas) throw errorEscalas;
                 }
+
+                mostrarToast('Culto registrado com sucesso!', 'success');
+                document.getElementById('culto-form').reset();
+                document.getElementById('total-presentes').value = 0;
                 
-                // Re-render charts if needed
-                if(targetId === 'dashboard' || targetId === 'relatorios') renderCharts();
-            });
-        });
+                // Recarregar e navegar
+                await carregarDados();
+                document.getElementById('dashboard-tab').click();
 
-        // Mobile toggle
-        document.getElementById('menu-toggle').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('main-content').classList.toggle('active');
-        });
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                mostrarToast('Erro ao salvar no banco de dados.', 'error');
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+        
+        async function deletarCulto(id) {
+            if(!confirm('Tem certeza que deseja excluir este registro?')) return;
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Excluindo registro...";
+            
+            try {
+                const { error } = await supabase.from('cultos').delete().eq('id', id);
+                if (error) throw error;
+                
+                mostrarToast('Culto removido com sucesso.', 'success');
+                await carregarDados();
+            } catch (err) {
+                mostrarToast('Erro ao deletar: ' + err.message, 'error');
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
 
-        // Modal close buttons
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-            });
-        });
-    }
+        async function salvarMembro(e) {
+            e.preventDefault();
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Salvando membro...";
+            
+            const nome = document.getElementById('membro-nome').value;
+            const email = document.getElementById('membro-email').value;
+            // Converte a string de departamentos em um array de strings
+            const deptos = document.getElementById('membro-departamentos').value.split(',').map(s => s.trim()).filter(s => s !== "");
+            
+            try {
+                const { error } = await supabase.from('membros').insert({ nome, email, departamentos: deptos });
+                if (error) throw error;
+                
+                mostrarToast('Membro cadastrado!', 'success');
+                document.getElementById('modal-membro').style.display='none';
+                document.getElementById('form-membro').reset();
+                await carregarDados();
+            } catch (err) {
+                mostrarToast('Erro: ' + err.message, 'error');
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
 
-    function calcularTotal() {
-        const h = parseInt(document.getElementById('homens').value) || 0;
-        const m = parseInt(document.getElementById('mulheres').value) || 0;
-        const c = parseInt(document.getElementById('criancas').value) || 0;
-        document.getElementById('total-presentes').value = h + m + c;
-    }
+        async function deletarMembro(id) {
+            if(!confirm('Excluir membro? Esta ação é permanente.')) return;
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Excluindo membro...";
+            
+            try {
+                const { error } = await supabase.from('membros').delete().eq('id', id);
+                if (!error) {
+                    mostrarToast('Membro excluído', 'success');
+                    await carregarDados();
+                } else {
+                    throw error;
+                }
+            } catch(err) {
+                 mostrarToast('Erro ao excluir: ' + err.message, 'error');
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
 
-    function renderTimeline() {
-        const timeline = document.getElementById('timeline-events');
-        if(!timeline) return;
+        // --- 5. RENDERIZAÇÃO DA UI ---
 
-        // Lógica simples de próximos eventos
-        const hoje = new Date();
-        const eventos = [
-            { titulo: "Culto de Oração", data: "Quinta-feira", desc: "19:30 - Templo" },
-            { titulo: "Culto da Família", data: "Domingo", desc: "18:00 - Templo" }
-        ];
+        function atualizarUI() {
+            renderDashboard();
+            renderHistorico();
+            renderEscalas();
+            renderMembros();
+            updateBadges();
+        }
 
-        timeline.innerHTML = eventos.map(ev => `
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <div style="font-weight:600; color:var(--dark);">${ev.titulo}</div>
-                    <div style="color:var(--gray); font-size:0.9rem;">${ev.desc}</div>
-                    <div style="margin-top:5px; font-size:0.8rem; color:var(--primary);"><i class="far fa-calendar"></i> ${ev.data}</div>
+        function renderDashboard() {
+            const totalCultos = estado.cultos.length;
+            const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
+            const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
+            const totalMembros = estado.membros.length;
+            
+            // Cards
+            document.getElementById('dashboard-cards').innerHTML = `
+                <div class="card card-info">
+                    <div class="card-header">
+                        <div class="card-title">Média de Público</div>
+                        <div class="card-icon"><i class="fas fa-users"></i></div>
+                    </div>
+                    <div class="card-value">${mediaPublico}</div>
+                    <div class="card-subvalue">Por culto (Total: ${totalPublico})</div>
                 </div>
-            </div>
-        `).join('');
-    }
+                <div class="card card-success">
+                    <div class="card-header">
+                        <div class="card-title">Cultos Registrados</div>
+                        <div class="card-icon"><i class="fas fa-church"></i></div>
+                    </div>
+                    <div class="card-value">${totalCultos}</div>
+                    <div class="card-subvalue">Registros em todo o histórico</div>
+                </div>
+                <div class="card card-warning">
+                    <div class="card-header">
+                        <div class="card-title">Base de Membros</div>
+                        <div class="card-icon"><i class="fas fa-user-check"></i></div>
+                    </div>
+                    <div class="card-value">${totalMembros}</div>
+                    <div class="card-subvalue">${estado.membros.filter(m => m.ativo).length} ativos</div>
+                </div>
+            `;
 
-    function updateBadges() {
-        const dashBadge = document.getElementById('dashboard-badge');
-        const histBadge = document.getElementById('historico-badge');
-        if(dashBadge) dashBadge.innerText = "3"; // Exemplo
-        if(histBadge) histBadge.innerText = estado.cultos.length;
-    }
+            renderCharts();
+            renderTimeline();
+        }
 
-    function initQuickActions() {
-        const container = document.getElementById('quick-actions');
-        if(!container) return;
-        container.innerHTML = `
-            <button class="quick-action-btn" onclick="document.getElementById('registro-tab').click()"><i class="fas fa-plus"></i> Novo Culto</button>
-            <button class="quick-action-btn" onclick="openModalMembro()"><i class="fas fa-user-plus"></i> Novo Membro</button>
-            <button class="quick-action-btn" onclick="window.print()"><i class="fas fa-print"></i> Relatório</button>
-        `;
-    }
+        function renderTimeline() {
+            const tbody = document.getElementById('timeline-events');
+            
+            // Renderiza apenas os 5 últimos cultos
+            tbody.innerHTML = estado.cultos.slice(0, 5).map(c => `
+                <tr style="border-bottom:1px solid var(--border-color);">
+                    <td style="padding:15px; font-weight:500;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
+                    <td style="padding:15px;">${c.tipo_culto}</td>
+                    <td style="padding:15px; font-weight:bold; color:var(--primary);">${c.homens+c.mulheres+c.criancas}</td>
+                    <td style="padding:15px;">${c.ministro}</td>
+                </tr>
+            `).join('');
+        }
 
-    // Expor funções globais
-    window.openModalMembro = () => {
-        document.getElementById('form-membro').reset();
-        document.getElementById('modal-membro').classList.add('active');
-    };
-    
-    window.mostrarToast = (msg, tipo) => {
-        const t = document.createElement('div');
-        t.className = `toast toast-${tipo}`;
-        t.innerHTML = tipo === 'success' ? `<i class="fas fa-check-circle"></i> ${msg}` : `<i class="fas fa-exclamation-circle"></i> ${msg}`;
-        document.getElementById('toast-container').appendChild(t);
-        setTimeout(() => t.remove(), 4000);
-    };
+        function renderCharts() {
+            // Gráfico 1: Crescimento (Linha)
+            const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
+            const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
+            const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
 
-    window.changeChartType = (chart, type) => {
-        mostrarToast(`Gráfico alterado para ${type} (Simulação)`, 'info');
-    };
-    
-    // Funções de Settings (Visual apenas por enquanto)
-    window.toggleDarkMode = () => mostrarToast('Modo escuro alterado', 'success');
-    window.changeTheme = (t) => mostrarToast('Tema alterado para '+t, 'success');
-    window.logout = () => window.location.reload();
+            const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+            if(estado.charts.growth) estado.charts.growth.destroy();
+            estado.charts.growth = new Chart(ctxGrowth, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Público Total',
+                        data: dataTotal,
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(26, 95, 180, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
 
-</script>
+            // Gráfico 2: Demográfico (Barra)
+            const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
+            const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
+            const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
+            
+            const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
+            if(estado.charts.demo) estado.charts.demo.destroy();
+            estado.charts.demo = new Chart(ctxDemo, {
+                type: 'bar',
+                data: {
+                    labels: ['Homens', 'Mulheres', 'Crianças'],
+                    datasets: [{
+                        label: 'Total Acumulado',
+                        data: [totalH, totalM, totalC],
+                        backgroundColor: ['#3498db', '#e91e63', '#27ae60'],
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function renderHistorico() {
+            const container = document.getElementById('historico-table-container');
+            if(!container) return;
+
+            container.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:2px solid var(--border-color); text-align:left; background-color: var(--bg-main);">
+                                <th style="padding:15px;">Data</th>
+                                <th style="padding:15px;">Tipo</th>
+                                <th style="padding:15px;">Público</th>
+                                <th style="padding:15px;">Ministro</th>
+                                <th style="padding:15px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${estado.cultos.map(c => `
+                                <tr style="border-bottom:1px solid var(--border-color);">
+                                    <td style="padding:15px;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
+                                    <td style="padding:15px;">${c.tipo_culto}</td>
+                                    <td style="padding:15px;"><strong>${c.homens+c.mulheres+c.criancas}</strong></td>
+                                    <td style="padding:15px;">${c.ministro}</td>
+                                    <td style="padding:15px;">
+                                        <button class="btn" style="color:var(--danger); background:none; border:none; padding:0;" onclick="deletarCulto(${c.id})"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderEscalas() {
+            const container = document.getElementById('lista-escalas');
+            if(!container) return; 
+            
+            container.innerHTML = '';
+            const ultimosCultos = estado.cultos.slice(0, 6);
+
+            ultimosCultos.forEach(culto => {
+                const escalasCulto = estado.escalas.filter(e => e.culto_id === culto.id);
+                if(escalasCulto.length === 0) return;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="font-weight:600; margin-bottom:10px; color:var(--primary); border-bottom:1px solid var(--border-color); padding-bottom:5px;">
+                        ${new Date(culto.data_culto).toLocaleDateString('pt-BR')} - ${culto.tipo_culto}
+                    </div>
+                    ${escalasCulto.map(e => `
+                        <div style="font-size:0.9rem; margin-bottom:5px; display:flex; justify-content:space-between;">
+                            <span style="font-weight:600; color:var(--gray);">${e.departamento}:</span> 
+                            <span style="max-width: 60%; text-align: right;">${e.nomes}</span>
+                        </div>
+                    `).join('')}
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function renderMembros() {
+            const container = document.getElementById('membros-table-container');
+            if(!container) return;
+
+            container.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:2px solid var(--border-color); text-align:left; background-color: var(--bg-main);">
+                                <th style="padding:15px;">Nome</th>
+                                <th style="padding:15px;">Email</th>
+                                <th style="padding:15px;">Departamentos</th>
+                                <th style="padding:15px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${estado.membros.map(m => `
+                                <tr style="border-bottom:1px solid var(--border-color);">
+                                    <td style="padding:15px;">${m.nome}</td>
+                                    <td style="padding:15px; color:var(--gray);">${m.email || '-'}</td>
+                                    <td style="padding:15px;">${(m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '-')}</td>
+                                    <td style="padding:15px;">
+                                        <button class="btn" style="color:var(--danger); background:none; border:none; padding:0;" onclick="deletarMembro(${m.id})"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+
+        // --- 6. FUNÇÕES AUXILIARES E EVENTOS ---
+
+        function cacheDOM() {
+            // Formulários
+            const formCulto = document.getElementById('culto-form');
+            if(formCulto) formCulto.addEventListener('submit', salvarCulto);
+            const formMembro = document.getElementById('form-membro');
+            if(formMembro) formMembro.addEventListener('submit', salvarMembro);
+
+            // Soma automática
+            ['homens', 'mulheres', 'criancas'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('input', calcularTotal);
+            });
+
+            // Data de hoje
+            const dateInput = document.getElementById('data-culto');
+            if(dateInput) dateInput.valueAsDate = new Date();
+        }
+
+        function bindEvents() {
+            // Navegação por Tabs
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // UI de Navegação
+                    document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    // UI de Conteúdo
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                    const targetId = link.getAttribute('href').substring(1);
+                    document.getElementById(targetId).classList.add('active');
+                    
+                    // Atualiza título
+                    document.getElementById('current-title').innerText = link.innerText.split(" ")[0];
+
+                    // Fecha sidebar no mobile
+                    if(window.innerWidth < 992) {
+                        document.getElementById('sidebar').classList.remove('active');
+                    }
+                    
+                    // Re-renderiza gráficos ao voltar pro dashboard
+                    if(targetId === 'dashboard') renderCharts();
+                });
+            });
+
+            // Mobile toggle
+            document.getElementById('menu-toggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+
+        function calcularTotal() {
+            const h = parseInt(document.getElementById('homens').value) || 0;
+            const m = parseInt(document.getElementById('mulheres').value) || 0;
+            const c = parseInt(document.getElementById('criancas').value) || 0;
+            document.getElementById('total-presentes').value = h + m + c;
+        }
+
+        function updateBadges() {
+            document.getElementById('dashboard-badge').innerText = estado.cultos.length;
+            document.getElementById('historico-badge').innerText = estado.cultos.length;
+        }
+        
+        // --- Settings Functions ---
+        window.toggleDarkMode = (isDark) => {
+            const newTheme = isDark ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            estado.theme = newTheme;
+            localStorage.setItem('app-theme', newTheme);
+            if(estado.charts.growth) renderCharts(); // Atualiza gráficos para novo tema
+        };
+
+        window.exportData = () => {
+            const dataToExport = estado.cultos.map(c => ({
+                Data: new Date(c.data_culto).toLocaleDateString('pt-BR'),
+                Tipo: c.tipo_culto,
+                Total_Publico: c.homens + c.mulheres + c.criancas,
+                Homens: c.homens,
+                Mulheres: c.mulheres,
+                Crianças: c.criancas,
+                Ministro: c.ministro,
+                Dirigente: c.dirigente,
+                Observações: c.observacoes
+            }));
+
+            const headers = Object.keys(dataToExport[0]);
+            const csv = [
+                headers.join(';'),
+                ...dataToExport.map(row => headers.map(header => row[header]).join(';'))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `cultos_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarToast('Dados exportados para CSV!', 'success');
+        };
+
+        window.logout = () => {
+            if (confirm('Deseja sair do sistema?')) {
+                mostrarToast('Saindo...', 'info');
+                setTimeout(() => window.location.reload(), 500);
+            }
+        };
+
+        // --- Modals and Toast ---
+        window.openModalMembro = () => {
+            document.getElementById('modal-membro').style.display='flex';
+        };
+
+        window.mostrarToast = (msg, tipo) => {
+            const t = document.createElement('div');
+            t.className = `toast toast-${tipo}`;
+            t.innerHTML = tipo === 'success' ? `<i class="fas fa-check-circle"></i> ${msg}` : `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => t.remove(), 4000);
+        };
+    </script>
 </body>
 </html>
-
