@@ -6,10 +6,10 @@
     <title>Gestão Ministerial | Verbo da Vida</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-   
+  
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-   
+  
     <style>
         /* Variáveis de Tema Padrão (Light Mode) */
         :root {
@@ -145,7 +145,7 @@
             margin-bottom: 20px;
             color: var(--primary-dark);
         }
-       
+      
         /* Cards Dashboard */
         .dashboard-grid {
             display: grid;
@@ -182,7 +182,7 @@
             flex-direction: column;
             justify-content: center;
         }
-       
+      
         /* Forms */
         .form-grid {
             display: grid;
@@ -276,7 +276,7 @@
             margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-       
+      
         /* Toast */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2100; }
         .toast {
@@ -303,7 +303,7 @@
     </style>
 </head>
 <body data-theme="light">
-   
+  
     <div class="connection-status status-error" id="connection-status">
         <i class="fas fa-sync fa-spin"></i> Testando Conexão...
     </div>
@@ -314,7 +314,7 @@
     <div class="wrapper">
         <nav class="sidebar" id="sidebar">
             <div class="brand"><i class="fas fa-church"></i> VerboApp</div>
-           
+          
             <ul class="nav-menu">
                 <li><a href="#dashboard" class="active" id="dashboard-tab"><i class="fas fa-chart-line"></i> Dashboard <span class="badge" id="dashboard-badge">0</span></a></li>
                 <li><a href="#registro" id="registro-tab"><i class="fas fa-plus-circle"></i> Novo Culto</a></li>
@@ -323,7 +323,7 @@
                 <li><a href="#membros" id="membros-tab"><i class="fas fa-address-book"></i> Membros</a></li>
                 <li><a href="#configuracoes" id="configuracoes-tab"><i class="fas fa-cog"></i> Configurações</a></li>
             </ul>
-           
+          
             <div style="margin-top: 50px;">
                 <button class="btn btn-secondary" style="width:100%;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </div>
@@ -343,7 +343,7 @@
             <div id="dashboard" class="tab-content active">
                 <div class="dashboard-grid" id="dashboard-cards">
                     </div>
-               
+              
                 <div class="chart-grid">
                     <div class="section">
                         <h3 class="section-title">Tendência de Público</h3>
@@ -376,7 +376,7 @@
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-plus-circle"></i> Registrar Novo Culto</h3>
                     <form id="culto-form">
-                       
+                      
                         <h4 style="margin-top:20px; margin-bottom:10px; color:var(--primary);">Informações Básicas</h4>
                         <div class="form-grid">
                             <div class="input-group">
@@ -406,13 +406,13 @@
                                 </select>
                             </div>
                         </div>
-                       
+                      
                         <div class="form-grid">
                             <div class="input-group"><label for="hora-inicio">Início</label><input type="time" id="hora-inicio" class="input-control" value="19:30" required></div>
                             <div class="input-group"><label for="hora-termino">Término</label><input type="time" id="hora-termino" class="input-control" value="21:30" required></div>
                             <div class="input-group"><label for="tempo-ministerio">Duração Palavra (min)</label><input type="number" id="tempo-ministerio" class="input-control" value="60"></div>
                         </div>
-                       
+                      
                         <h4 style="margin-top:30px; margin-bottom:10px; color:var(--primary);">Contagem de Pessoas</h4>
                         <div class="form-grid">
                             <div class="input-group"><label for="homens">Homens</label><input type="number" id="homens" class="input-control" value="0"></div>
@@ -425,19 +425,19 @@
                             <div class="input-group"><label for="ministro">Ministro da Palavra</label><input type="text" id="ministro" class="input-control" required></div>
                             <div class="input-group"><label for="dirigente">Dirigente do Culto</label><input type="text" id="dirigente" class="input-control"></div>
                         </div>
-                       
+                      
                         <div class="form-grid">
                             <div class="input-group"><label for="diaconato">Diaconato (Nomes)</label><input type="text" id="diaconato" class="input-control" placeholder="Separar por vírgula"></div>
                             <div class="input-group"><label for="infantil">Infantil (Nomes)</label><input type="text" id="infantil" class="input-control"></div>
                             <div class="input-group"><label for="musica">Música (Nomes)</label><input type="text" id="musica" class="input-control"></div>
                             <div class="input-group"><label for="midia">Mídia (Nomes)</label><input type="text" id="midia" class="input-control"></div>
                         </div>
-                       
+                      
                         <div class="input-group">
                             <label for="observacoes">Observações</label>
                             <textarea id="observacoes" class="input-control" rows="3" placeholder="Informações adicionais, ocorrências..."></textarea>
                         </div>
-                       
+                      
                         <div style="margin-top:30px; display:flex; gap:15px;">
                             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Registro</button>
                             <button type="button" class="btn btn-secondary" onclick="document.getElementById('culto-form').reset()"><i class="fas fa-redo"></i> Limpar</button>
@@ -445,7 +445,7 @@
                     </form>
                 </div>
             </div>
-           
+          
             <div id="historico" class="tab-content">
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>
@@ -463,7 +463,7 @@
             <div id="membros" class="tab-content">
     <div class="section">
         <h3 class="section-title">Gestão de Membros</h3>
-        
+       
         <!-- Filtros -->
         <div style="margin-bottom: 25px; background: var(--bg-main); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow);">
             <h4 style="margin-bottom: 15px; color: var(--primary);">Filtros</h4>
@@ -500,20 +500,26 @@
                         <option value="false">Não</option>
                     </select>
                 </div>
+                <div class="input-group">
+                    <label>Fez Escola de Ministros?</label>
+                    <select id="filtro-escola-ministros" class="input-control">
+                        <option value="">Todos</option>
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
             </div>
         </div>
-
         <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px;">
             Novo Membro
         </button>
-
         <div id="membros-table-container"></div>
     </div>
 </div>
             <div id="configuracoes" class="tab-content">
                 <div class="section" style="max-width: 600px; margin: 0 auto;">
                     <h3 class="section-title"><i class="fas fa-cog"></i> Configurações do Sistema</h3>
-                   
+                  
                     <div class="setting-item">
                         <div class="setting-info">
                             <h4>Modo Escuro (Dark Mode)</h4>
@@ -531,7 +537,7 @@
                         </div>
                         <button class="btn btn-secondary" onclick="exportData()"><i class="fas fa-download"></i> Exportar</button>
                     </div>
-                   
+                  
                     <div class="setting-item" style="border-bottom: none;">
                         <div class="setting-info">
                             <h4 style="color: var(--danger);">Resetar Dados</h4>
@@ -547,6 +553,7 @@
     <div class="modal-content" style="background:var(--bg-card); padding:30px; border-radius:var(--radius); width:90%; max-width:500px; box-shadow:var(--shadow);">
         <h3 class="section-title" style="margin-bottom:20px;">Novo / Editar Membro</h3>
         <form id="form-membro">
+            <input type="hidden" id="membro-id">
             <div class="form-grid">
                 <div class="input-group">
                     <label for="membro-nome">Nome Completo *</label>
@@ -557,7 +564,6 @@
                     <input type="tel" id="membro-telefone" class="input-control" placeholder="(99) 99999-9999">
                 </div>
             </div>
-
             <div class="form-grid">
                 <div class="input-group">
                     <label for="membro-nascimento">Data de Nascimento</label>
@@ -568,7 +574,6 @@
                     <input type="email" id="membro-email" class="input-control">
                 </div>
             </div>
-
             <div class="form-grid">
                 <div class="input-group">
                     <label>Fez Rhema?</label>
@@ -585,12 +590,10 @@
                     </select>
                 </div>
             </div>
-
             <div class="input-group" style="margin:20px 0;">
                 <label for="membro-departamentos">Departamentos (separar por vírgula)</label>
                 <input type="text" id="membro-departamentos" class="input-control" placeholder="Ex: Diaconato, Louvor, Infantil">
             </div>
-
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
                 <button type="button" class="btn btn-secondary" onclick="fecharModalMembro()">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Salvar Membro</button>
@@ -598,13 +601,13 @@
         </form>
     </div>
 </div>
-   
+  
     <div id="toast-container"></div>
     <script>
         // --- 1. CONFIGURAÇÃO SUPABASE (CORRIGIDO) ---
         const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
         const SUPABASE_KEY = 'sb_publishable__r9k3LzISUD3NwICOhOklw_mf1IprWw';
-       
+      
         // Criando o cliente Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         // --- 2. ESTADO GLOBAL ---
@@ -620,14 +623,14 @@
             // Aplica tema
             document.body.setAttribute('data-theme', estado.theme);
             document.getElementById('theme-toggle').checked = estado.theme === 'dark';
-           
+          
             cacheDOM();
             bindEvents();
-           
+          
             // Tenta a conexão e carrega os dados
             await checkConnection();
             await carregarDados();
-           
+          
             document.getElementById('loading-overlay').style.display = 'none';
         });
         // --- 4. FUNÇÕES DE CONEXÃO E DADOS ---
@@ -636,13 +639,13 @@
             statusEl.classList.remove('status-error');
             statusEl.classList.add('status-ok');
             statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
-           
+          
             try {
                 // Tenta fazer uma consulta simples para validar a conexão
                 const { error } = await supabase.from('cultos').select('id', { count: 'exact', head: true });
-               
+              
                 if (error) throw error;
-               
+              
                 statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Supabase Conectado';
                 statusEl.classList.remove('status-error');
                 statusEl.classList.add('status-ok');
@@ -656,7 +659,7 @@
         }
         async function carregarDados() {
             document.getElementById('loading-text').innerText = "Carregando dados...";
-           
+          
             try {
                 const [resCultos, resEscalas, resMembros] = await Promise.all([
                     supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
@@ -667,7 +670,7 @@
                 estado.escalas = resEscalas.data || [];
                 estado.membros = resMembros.data || [];
                 atualizarUI();
-               
+              
             } catch (err) {
                 console.error("Erro ao carregar dados:", err);
                 mostrarToast('Erro ao carregar dados do servidor.', 'error');
@@ -677,7 +680,7 @@
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Salvando Culto...";
-           
+          
             const novoCulto = {
                 data_culto: document.getElementById('data-culto').value,
                 dia_semana: document.getElementById('dia-semana').value,
@@ -717,7 +720,7 @@
                 mostrarToast('Culto registrado com sucesso!', 'success');
                 document.getElementById('culto-form').reset();
                 document.getElementById('total-presentes').value = 0;
-               
+              
                 // Recarregar e navegar
                 await carregarDados();
                 document.getElementById('dashboard-tab').click();
@@ -728,16 +731,16 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-       
+      
         async function deletarCulto(id) {
             if(!confirm('Tem certeza que deseja excluir este registro?')) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Excluindo registro...";
-           
+          
             try {
                 const { error } = await supabase.from('cultos').delete().eq('id', id);
                 if (error) throw error;
-               
+              
                 mostrarToast('Culto removido com sucesso.', 'success');
                 await carregarDados();
             } catch (err) {
@@ -750,7 +753,7 @@
     e.preventDefault();
     document.getElementById('loading-overlay').style.display = 'flex';
     document.getElementById('loading-text').innerText = "Salvando membro...";
-
+    const id = document.getElementById('membro-id').value;
     const nome = document.getElementById('membro-nome').value.trim();
     const telefone = document.getElementById('membro-telefone').value.trim();
     const nascimento = document.getElementById('membro-nascimento').value || null;
@@ -758,21 +761,34 @@
     const fez_rhema = document.getElementById('membro-rhema').value === 'true';
     const escola_ministros = document.getElementById('membro-escola').value === 'true';
     const deptos = document.getElementById('membro-departamentos').value.split(',').map(s => s.trim()).filter(s => s);
-
     try {
-        const { error } = await supabase.from('membros').insert({
-            nome,
-            telefone,
-            nascimento,
-            email,
-            departamentos: deptos,
-            fez_rhema,
-            escola_ministros
-        });
-
+        let error;
+        if (id) {
+            // Atualizar membro existente
+            ({ error } = await supabase.from('membros').update({
+                nome,
+                telefone,
+                nascimento,
+                email,
+                departamentos: deptos,
+                fez_rhema,
+                escola_ministros
+            }).eq('id', id));
+            mostrarToast('Membro atualizado com sucesso!', 'success');
+        } else {
+            // Inserir novo membro
+            ({ error } = await supabase.from('membros').insert({
+                nome,
+                telefone,
+                nascimento,
+                email,
+                departamentos: deptos,
+                fez_rhema,
+                escola_ministros
+            }));
+            mostrarToast('Membro cadastrado com sucesso!', 'success');
+        }
         if (error) throw error;
-
-        mostrarToast('Membro cadastrado com sucesso!', 'success');
         fecharModalMembro();
         await carregarDados(); // recarrega tudo
     } catch (err) {
@@ -781,16 +797,29 @@
         document.getElementById('loading-overlay').style.display = 'none';
     }
 }
-
 function fecharModalMembro() {
     document.getElementById('modal-membro').style.display = 'none';
     document.getElementById('form-membro').reset();
+    document.getElementById('membro-id').value = '';
+}
+function editarMembro(id) {
+    const membro = estado.membros.find(m => m.id === id);
+    if (!membro) return;
+    document.getElementById('membro-id').value = membro.id;
+    document.getElementById('membro-nome').value = membro.nome;
+    document.getElementById('membro-telefone').value = membro.telefone || '';
+    document.getElementById('membro-nascimento').value = membro.nascimento || '';
+    document.getElementById('membro-email').value = membro.email || '';
+    document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
+    document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
+    document.getElementById('membro-departamentos').value = membro.departamentos ? membro.departamentos.join(', ') : '';
+    document.getElementById('modal-membro').style.display = 'flex';
 }
         async function deletarMembro(id) {
             if(!confirm('Excluir membro? Esta ação é permanente.')) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Excluindo membro...";
-           
+          
             try {
                 const { error } = await supabase.from('membros').delete().eq('id', id);
                 if (!error) {
@@ -818,7 +847,7 @@ function fecharModalMembro() {
             const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
             const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
             const totalMembros = estado.membros.length;
-           
+          
             // Cards
             document.getElementById('dashboard-cards').innerHTML = `
                 <div class="card card-info">
@@ -851,10 +880,10 @@ function fecharModalMembro() {
         }
         function renderTimeline() {
             const tbody = document.getElementById('timeline-events');
-           
+          
             // Renderiza apenas os 5 últimos cultos
             tbody.innerHTML = estado.cultos.slice(0, 5).map(c => `
-                <tr style="border-bottom:1px solid var(--border-color);">
+                <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:15px; font-weight:500;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
                     <td style="padding:15px;">${c.tipo_culto}</td>
                     <td style="padding:15px; font-weight:bold; color:var(--primary);">${c.homens+c.mulheres+c.criancas}</td>
@@ -888,7 +917,7 @@ function fecharModalMembro() {
             const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
             const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
             const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
-           
+          
             const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
             if(estado.charts.demo) estado.charts.demo.destroy();
             estado.charts.demo = new Chart(ctxDemo, {
@@ -940,7 +969,7 @@ function fecharModalMembro() {
         function renderEscalas() {
             const container = document.getElementById('lista-escalas');
             if(!container) return;
-           
+          
             container.innerHTML = '';
             const ultimosCultos = estado.cultos.slice(0, 6);
             ultimosCultos.forEach(culto => {
@@ -962,7 +991,7 @@ function fecharModalMembro() {
                 container.appendChild(card);
             });
         }
-       
+      
         function calcularIdade(dataNasc) {
     if (!dataNasc) return '';
     const hoje = new Date();
@@ -972,31 +1001,27 @@ function fecharModalMembro() {
     if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
     return idade;
 }
-
 function ehAniversarianteDoMes(dataNasc) {
     if (!dataNasc) return false;
     const hoje = new Date();
     const nasc = new Date(dataNasc);
     return hoje.getMonth() === nasc.getMonth();
 }
-
 function renderMembros() {
     const container = document.getElementById('membros-table-container');
     if (!container) return;
-
     // Aplicar filtros
     let membrosFiltrados = [...estado.membros];
-
     const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
     const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
     const filtroAniv = document.getElementById('filtro-aniversario')?.value || '';
     const filtroRhema = document.getElementById('filtro-rhema')?.value;
-
+    const filtroEscolaMinistros = document.getElementById('filtro-escola-ministros')?.value;
     if (filtroNome) {
         membrosFiltrados = membrosFiltrados.filter(m => m.nome.toLowerCase().includes(filtroNome));
     }
     if (filtroDepto) {
-        membrosFiltrados = membrosFiltrados.filter(m => 
+        membrosFiltrados = membrosFiltrados.filter(m =>
             m.departamentos && m.departamentos.some(d => d.includes(filtroDepto))
         );
     }
@@ -1006,7 +1031,9 @@ function renderMembros() {
     if (filtroRhema !== '') {
         membrosFiltrados = membrosFiltrados.filter(m => String(m.fez_rhema) === filtroRhema);
     }
-
+    if (filtroEscolaMinistros !== '') {
+        membrosFiltrados = membrosFiltrados.filter(m => String(m.escola_ministros) === filtroEscolaMinistros);
+    }
     container.innerHTML = `
         <div style="margin-bottom:15px; font-weight:600; color:var(--primary);">
             Mostrando ${membrosFiltrados.length} de ${estado.membros.length} membros
@@ -1041,11 +1068,14 @@ function renderMembros() {
                                     ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
                                 </td>
                                 <td style="padding:15px;">
-                                    ${m.fez_rhema ? 'Rhema' : ''} 
+                                    ${m.fez_rhema ? 'Rhema' : ''}
                                     ${m.escola_ministros ? 'Escola' : ''}
                                     ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
                                 </td>
                                 <td style="padding:15px;">
+                                    <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro(${m.id})">
+                                        Editar
+                                    </button>
                                     <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro(${m.id})">
                                         Excluir
                                     </button>
@@ -1057,9 +1087,8 @@ function renderMembros() {
             </table>
         </div>
     `;
-
     // Adicionar eventos aos filtros (debounce simples)
-    ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema'].forEach(id => {
+    ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.oninput = el.onchange = () => renderMembros();
     });
@@ -1088,19 +1117,19 @@ function renderMembros() {
                     // UI de Navegação
                     document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
                     link.classList.add('active');
-                   
+                  
                     // UI de Conteúdo
                     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     const targetId = link.getAttribute('href').substring(1);
                     document.getElementById(targetId).classList.add('active');
-                   
+                  
                     // Atualiza título
                     document.getElementById('current-title').innerText = link.innerText.split(" ")[0];
                     // Fecha sidebar no mobile
                     if(window.innerWidth < 992) {
                         document.getElementById('sidebar').classList.remove('active');
                     }
-                   
+                  
                     // Re-renderiza gráficos ao voltar pro dashboard
                     if(targetId === 'dashboard') renderCharts();
                 });
@@ -1120,7 +1149,7 @@ function renderMembros() {
             document.getElementById('dashboard-badge').innerText = estado.cultos.length;
             document.getElementById('historico-badge').innerText = estado.cultos.length;
         }
-       
+      
         // --- Settings Functions ---
         window.toggleDarkMode = (isDark) => {
             const newTheme = isDark ? 'dark' : 'light';
@@ -1153,7 +1182,7 @@ function renderMembros() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-           
+          
             mostrarToast('Dados exportados para CSV!', 'success');
         };
         window.logout = () => {
