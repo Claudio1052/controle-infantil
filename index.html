@@ -994,17 +994,19 @@ function editarMembro(id) {
       
         function calcularIdade(dataNasc) {
     if (!dataNasc) return '';
+    const [y, m, d] = dataNasc.split('-').map(Number);
+    const nasc = new Date(y, m - 1, d);
     const hoje = new Date();
-    const nasc = new Date(dataNasc);
     let idade = hoje.getFullYear() - nasc.getFullYear();
-    const m = hoje.getMonth() - nasc.getMonth();
-    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+    const monthDiff = hoje.getMonth() - nasc.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && hoje.getDate() < nasc.getDate())) idade--;
     return idade;
 }
 function ehAniversarianteDoMes(dataNasc) {
     if (!dataNasc) return false;
+    const [y, m, d] = dataNasc.split('-').map(Number);
+    const nasc = new Date(y, m - 1, d);
     const hoje = new Date();
-    const nasc = new Date(dataNasc);
     return hoje.getMonth() === nasc.getMonth();
 }
 function renderMembros() {
@@ -1056,11 +1058,17 @@ function renderMembros() {
                         const idade = calcularIdade(m.nascimento);
                         const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
                         const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' Festa' : '';
+                        let birthDisplay = '-';
+                        if (m.nascimento) {
+                            const [y, month, day] = m.nascimento.split('-').map(Number);
+                            const nasc = new Date(y, month - 1, day);
+                            birthDisplay = nasc.toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'});
+                        }
                         return `
                             <tr style="border-bottom:1px solid var(--border-color); ${ehAniversarianteDoMes(m.nascimento) ? 'background:rgba(39,174,96,0.1);' : ''}">
                                 <td style="padding:15px;">${m.nome} ${iconAniv}</td>
                                 <td style="padding:15px; ${anivStyle}">
-                                    ${m.nascimento ? new Date(m.nascimento).toLocaleDateString('pt-BR', {day:'2-digit', month:'long'}) : '-'}
+                                    ${birthDisplay}
                                     ${idade ? ` (${idade} anos)` : ''}
                                 </td>
                                 <td style="padding:15px;">${m.telefone || '-'}</td>
