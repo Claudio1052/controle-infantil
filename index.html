@@ -6,10 +6,8 @@
     <title>Gestão Ministerial | Verbo da Vida</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  
+    
     <style>
         /* Todo o CSS permanece EXATAMENTE como estava */
         /* Variáveis de Tema Padrão (Light Mode) */
@@ -343,7 +341,7 @@
             </div>
             <div id="dashboard" class="tab-content active">
                 <div class="dashboard-grid" id="dashboard-cards">
-                    </div>
+                </div>
               
                 <div class="chart-grid">
                     <div class="section">
@@ -368,7 +366,7 @@
                                 </tr>
                             </thead>
                             <tbody id="timeline-events">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -451,75 +449,75 @@
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>
                     <div id="historico-table-container">
-                        </div>
+                    </div>
                 </div>
             </div>
             <div id="escalas" class="tab-content">
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-clipboard-list"></i> Escalas Recentes</h3>
                     <div class="dashboard-grid" id="lista-escalas">
-                        </div>
+                    </div>
                 </div>
             </div>
             <div id="membros" class="tab-content">
-    <div class="section">
-        <h3 class="section-title">Gestão de Membros</h3>
-       
-        <!-- Filtros -->
-        <div style="margin-bottom: 25px; background: var(--bg-main); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow);">
-            <h4 style="margin-bottom: 15px; color: var(--primary);">Filtros</h4>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>Pesquisar por nome</label>
-                    <input type="text" id="filtro-nome" class="input-control" placeholder="Digite o nome...">
-                </div>
-                <div class="input-group">
-                    <label>Departamento</label>
-                    <select id="filtro-departamento" class="input-control">
-                        <option value="">Todos</option>
-                        <option>Diaconato</option>
-                        <option>Música</option>
-                        <option>Infantil</option>
-                        <option>Mídia</option>
-                        <option>Recepção</option>
-                        <option>Jovens</option>
-                        <option>Transito</option>
-                         <option>Concelheiros</option>
-                         <option>Livraria</option>
-                        <option>Ministros</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Aniversário este mês</label>
-                    <select id="filtro-aniversario" class="input-control">
-                        <option value="">Não</option>
-                        <option value="sim">Sim (destaque)</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Fez Rhema?</label>
-                    <select id="filtro-rhema" class="input-control">
-                        <option value="">Todos</option>
-                        <option value="true">Sim</option>
-                        <option value="false">Não</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Fez Escola de Ministros?</label>
-                    <select id="filtro-escola-ministros" class="input-control">
-                        <option value="">Todos</option>
-                        <option value="true">Sim</option>
-                        <option value="false">Não</option>
-                    </select>
+                <div class="section">
+                    <h3 class="section-title">Gestão de Membros</h3>
+                   
+                    <!-- Filtros -->
+                    <div style="margin-bottom: 25px; background: var(--bg-main); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <h4 style="margin-bottom: 15px; color: var(--primary);">Filtros</h4>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Pesquisar por nome</label>
+                                <input type="text" id="filtro-nome" class="input-control" placeholder="Digite o nome...">
+                            </div>
+                            <div class="input-group">
+                                <label>Departamento</label>
+                                <select id="filtro-departamento" class="input-control">
+                                    <option value="">Todos</option>
+                                    <option>Diaconato</option>
+                                    <option>Música</option>
+                                    <option>Infantil</option>
+                                    <option>Mídia</option>
+                                    <option>Recepção</option>
+                                    <option>Jovens</option>
+                                    <option>Transito</option>
+                                    <option>Concelheiros</option>
+                                    <option>Livraria</option>
+                                    <option>Ministros</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Aniversário este mês</label>
+                                <select id="filtro-aniversario" class="input-control">
+                                    <option value="">Não</option>
+                                    <option value="sim">Sim (destaque)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Fez Rhema?</label>
+                                <select id="filtro-rhema" class="input-control">
+                                    <option value="">Todos</option>
+                                    <option value="true">Sim</option>
+                                    <option value="false">Não</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Fez Escola de Ministros?</label>
+                                <select id="filtro-escola-ministros" class="input-control">
+                                    <option value="">Todos</option>
+                                    <option value="true">Sim</option>
+                                    <option value="false">Não</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px;">
+                        Novo Membro
+                    </button>
+                    <div id="membros-table-container"></div>
                 </div>
             </div>
-        </div>
-        <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px;">
-            Novo Membro
-        </button>
-        <div id="membros-table-container"></div>
-    </div>
-</div>
             <div id="configuracoes" class="tab-content">
                 <div class="section" style="max-width: 600px; margin: 0 auto;">
                     <h3 class="section-title"><i class="fas fa-cog"></i> Configurações do Sistema</h3>
@@ -554,79 +552,82 @@
         </main>
     </div>
     <div class="modal" id="modal-membro" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:1000;">
-    <div class="modal-content" style="background:var(--bg-card); padding:30px; border-radius:var(--radius); width:90%; max-width:500px; box-shadow:var(--shadow);">
-        <h3 class="section-title" style="margin-bottom:20px;">Novo / Editar Membro</h3>
-        <form id="form-membro">
-            <input type="hidden" id="membro-id">
-            <div class="form-grid">
-                <div class="input-group">
-                    <label for="membro-nome">Nome Completo *</label>
-                    <input type="text" id="membro-nome" class="input-control" required>
+        <div class="modal-content" style="background:var(--bg-card); padding:30px; border-radius:var(--radius); width:90%; max-width:500px; box-shadow:var(--shadow);">
+            <h3 class="section-title" style="margin-bottom:20px;">Novo / Editar Membro</h3>
+            <form id="form-membro">
+                <input type="hidden" id="membro-id">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="membro-nome">Nome Completo *</label>
+                        <input type="text" id="membro-nome" class="input-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="membro-telefone">Telefone (WhatsApp)</label>
+                        <input type="tel" id="membro-telefone" class="input-control" placeholder="(99) 99999-9999">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label for="membro-telefone">Telefone (WhatsApp)</label>
-                    <input type="tel" id="membro-telefone" class="input-control" placeholder="(99) 99999-9999">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="membro-nascimento">Data de Nascimento</label>
+                        <input type="date" id="membro-nascimento" class="input-control">
+                    </div>
+                    <div class="input-group">
+                        <label for="membro-email">E-mail</label>
+                        <input type="email" id="membro-email" class="input-control">
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label for="membro-nascimento">Data de Nascimento</label>
-                    <input type="date" id="membro-nascimento" class="input-control">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Fez Rhema?</label>
+                        <select id="membro-rhema" class="input-control">
+                            <option value="false">Não</option>
+                            <option value="true">Sim</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Escola de Ministros?</label>
+                        <select id="membro-escola" class="input-control">
+                            <option value="false">Não</option>
+                            <option value="true">Sim</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label for="membro-email">E-mail</label>
-                    <input type="email" id="membro-email" class="input-control">
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>Fez Rhema?</label>
-                    <select id="membro-rhema" class="input-control">
-                        <option value="false">Não</option>
-                        <option value="true">Sim</option>
+                <div class="input-group" style="margin:20px 0;">
+                    <label for="membro-departamentos">Departamentos</label>
+                    <select id="membro-departamentos" class="input-control" multiple>
+                        <option value="Diaconato">Diaconato</option>
+                        <option value="Música">Música</option>
+                        <option value="Infantil">Infantil</option>
+                        <option value="Mídia">Mídia</option>
+                        <option value="Recepção">Recepção</option>
+                        <option value="Jovens">Jovens</option>
+                        <option value="Transito">Transito</option>
+                        <option value="Concelheiros">Concelheiros</option>
+                        <option value="Livraria">Livraria</option>
+                        <option value="Ministros">Ministros</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label>Escola de Ministros?</label>
-                    <select id="membro-escola" class="input-control">
-                        <option value="false">Não</option>
-                        <option value="true">Sim</option>
-                    </select>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalMembro()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Membro</button>
                 </div>
-            </div>
-            <div class="input-group" style="margin:20px 0;">
-                <label for="membro-departamentos">Departamentos</label>
-                <select id="membro-departamentos" class="input-control" multiple>
-                    <option value="Diaconato">Diaconato</option>
-                    <option value="Música">Música</option>
-                    <option value="Infantil">Infantil</option>
-                    <option value="Mídia">Mídia</option>
-                    <option value="Recepção">Recepção</option>
-                    <option value="Jovens">Jovens</option>
-                    <option value="Transito">Transito</option>
-                     <option value="Concelheiros">Concelheiros</option>
-                     <option value="Livraria">Livraria</option>
-                     <option value="Ministros">Ministros</option>
-    
-                </select>
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button type="button" class="btn btn-secondary" onclick="fecharModalMembro()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Salvar Membro</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
   
     <div id="toast-container"></div>
     <script>
-        // --- 1. CONFIGURAÇÃO SUPABASE (CORRIGIDA) ---
-        const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
-        // Use a service_role key para ter todas as permissões
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzA1MDM3NywiZXhwIjoyMDc4NjI2Mzc3fQ.6fD38AYASf0ftoM42KXplgxPRnzi1hqBQqJv_BhW5wk';
-      
-        // Criando o cliente Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- 1. CONFIGURAÇÃO NEON ---
+        const NEON_API_URL = 'https://ep-polished-cherry-ad6mnvj4.apirest.c-2.us-east-1.aws.neon.tech/neondb/rest/v1';
+        const NEON_API_KEY = 'napi_tep10r2emlhfglu7j2o4ehj3jyyn817kq2x5s4rtnkafouvy8sy7jqe0wf97vs73';
+        
+        // Headers para todas as requisições
+        const neonHeaders = {
+            'apikey': NEON_API_KEY,
+            'Authorization': `Bearer ${NEON_API_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
         
         // --- 2. ESTADO GLOBAL ---
         let estado = {
@@ -637,7 +638,156 @@
             theme: localStorage.getItem('app-theme') || 'light'
         };
         
-        // --- 3. INICIALIZAÇÃO ---
+        // --- 3. FUNÇÕES DE CONEXÃO COM NEON ---
+        async function neonFetch(endpoint, options = {}) {
+            const url = `${NEON_API_URL}/${endpoint}`;
+            
+            const defaultOptions = {
+                headers: neonHeaders,
+                ...options
+            };
+            
+            try {
+                const response = await fetch(url, defaultOptions);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                // Para DELETE sem retorno
+                if (response.status === 204 || options.method === 'DELETE') {
+                    return null;
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error(`Erro na requisição para ${endpoint}:`, error);
+                throw error;
+            }
+        }
+        
+        // --- 4. FUNÇÕES DE BANCO DE DADOS ---
+        async function carregarCultos() {
+            try {
+                // Usando RPC para contar e selecionar, ou apenas selecionar
+                const cultos = await neonFetch('cultos?select=*&order=data_culto.desc');
+                return Array.isArray(cultos) ? cultos : [];
+            } catch (error) {
+                console.error("Erro ao carregar cultos:", error);
+                return [];
+            }
+        }
+        
+        async function carregarEscalas() {
+            try {
+                const escalas = await neonFetch('escalas?select=*');
+                return Array.isArray(escalas) ? escalas : [];
+            } catch (error) {
+                console.error("Erro ao carregar escalas:", error);
+                return [];
+            }
+        }
+        
+        async function carregarMembros() {
+            try {
+                const membros = await neonFetch('membros?select=*&order=nome.asc');
+                return Array.isArray(membros) ? membros : [];
+            } catch (error) {
+                console.error("Erro ao carregar membros:", error);
+                return [];
+            }
+        }
+        
+        async function salvarCultoNeon(culto) {
+            try {
+                const result = await neonFetch('cultos', {
+                    method: 'POST',
+                    body: JSON.stringify(culto)
+                });
+                
+                if (result && result.length > 0) {
+                    return result[0]; // Retorna o culto inserido
+                }
+                throw new Error('Nenhum dado retornado');
+            } catch (error) {
+                console.error("Erro ao salvar culto:", error);
+                throw error;
+            }
+        }
+        
+        async function salvarEscalasNeon(escalas) {
+            try {
+                if (escalas.length === 0) return [];
+                
+                const result = await neonFetch('escalas', {
+                    method: 'POST',
+                    body: JSON.stringify(escalas)
+                });
+                
+                return result || [];
+            } catch (error) {
+                console.error("Erro ao salvar escalas:", error);
+                throw error;
+            }
+        }
+        
+        async function salvarMembroNeon(membro) {
+            try {
+                const result = await neonFetch('membros', {
+                    method: 'POST',
+                    body: JSON.stringify(membro)
+                });
+                
+                if (result && result.length > 0) {
+                    return result[0];
+                }
+                throw new Error('Nenhum dado retornado');
+            } catch (error) {
+                console.error("Erro ao salvar membro:", error);
+                throw error;
+            }
+        }
+        
+        async function atualizarMembroNeon(id, membro) {
+            try {
+                const result = await neonFetch(`membros?id=eq.${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(membro)
+                });
+                
+                return result;
+            } catch (error) {
+                console.error("Erro ao atualizar membro:", error);
+                throw error;
+            }
+        }
+        
+        async function deletarCultoNeon(id) {
+            try {
+                await neonFetch(`cultos?id=eq.${id}`, {
+                    method: 'DELETE'
+                });
+                return true;
+            } catch (error) {
+                console.error("Erro ao deletar culto:", error);
+                throw error;
+            }
+        }
+        
+        async function deletarMembroNeon(id) {
+            try {
+                await neonFetch(`membros?id=eq.${id}`, {
+                    method: 'DELETE'
+                });
+                return true;
+            } catch (error) {
+                console.error("Erro ao deletar membro:", error);
+                throw error;
+            }
+        }
+        
+        // --- 5. INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', async () => {
             // Aplica tema
             document.body.setAttribute('data-theme', estado.theme);
@@ -653,42 +803,31 @@
             document.getElementById('loading-overlay').style.display = 'none';
         });
         
-        // --- 4. FUNÇÕES DE CONEXÃO E DADOS ---
         async function checkConnection() {
             const statusEl = document.getElementById('connection-status');
             statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
             
             try {
-                // Testa conexão básica
-                const { data, error } = await supabase.from('cultos').select('count').limit(1);
+                // Testa conexão com o Neon
+                const response = await fetch(NEON_API_URL + '/cultos?limit=1', {
+                    headers: neonHeaders
+                });
                 
-                if (error) {
-                    // Se erro for "tabela não existe", é OK - significa que está conectado
-                    if (error.code === '42P01') {
-                        statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado (Sem tabelas)';
-                        statusEl.className = 'connection-status status-ok';
-                        mostrarToast('Banco conectado! Crie as tabelas primeiro.', 'info');
-                        return;
-                    }
-                    throw error;
+                if (response.status === 200 || response.status === 404) {
+                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado ao Neon';
+                    statusEl.className = 'connection-status status-ok';
+                    mostrarToast('Conectado ao banco Neon!', 'success');
+                } else if (response.status === 401 || response.status === 403) {
+                    throw new Error('API Key inválida ou expirada');
+                } else {
+                    throw new Error(`Status: ${response.status}`);
                 }
-                
-                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
-                statusEl.className = 'connection-status status-ok';
                 
             } catch (e) {
-                console.error("Erro detalhado:", e);
-                
+                console.error("Erro de conexão:", e);
                 statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${e.message || 'Erro de Conexão'}`;
                 statusEl.className = 'connection-status status-error';
-                
-                if (e.message.includes('JWT')) {
-                    mostrarToast("Token JWT inválido ou expirado", "error");
-                } else if (e.message.includes('fetch')) {
-                    mostrarToast("Erro de rede. Verifique sua conexão", "error");
-                } else {
-                    mostrarToast("Erro: " + e.message, "error");
-                }
+                mostrarToast("Erro: " + e.message, "error");
             }
         }
         
@@ -696,24 +835,16 @@
             document.getElementById('loading-text').innerText = "Carregando dados...";
           
             try {
-                // Tenta carregar dados, mas se as tabelas não existirem, mostra mensagem
-                const [resCultos, resEscalas, resMembros] = await Promise.all([
-                    supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
-                    supabase.from('escalas').select('*'),
-                    supabase.from('membros').select('*').order('nome')
+                // Carrega todos os dados em paralelo
+                const [cultos, escalas, membros] = await Promise.all([
+                    carregarCultos(),
+                    carregarEscalas(),
+                    carregarMembros()
                 ]);
                 
-                // Verifica se há erro de "tabela não existe"
-                if (resCultos.error && resCultos.error.code === '42P01') {
-                    mostrarToast('Tabelas não encontradas. Crie as tabelas no Supabase.', 'warning');
-                    estado.cultos = [];
-                    estado.escalas = [];
-                    estado.membros = [];
-                } else {
-                    estado.cultos = resCultos.data || [];
-                    estado.escalas = resEscalas.data || [];
-                    estado.membros = resMembros.data || [];
-                }
+                estado.cultos = cultos;
+                estado.escalas = escalas;
+                estado.membros = membros;
                 
                 atualizarUI();
               
@@ -723,6 +854,7 @@
             }
         }
         
+        // --- 6. FUNÇÕES PRINCIPAIS DO APP ---
         async function salvarCulto(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -740,12 +872,16 @@
                 criancas: parseInt(document.getElementById('criancas').value) || 0,
                 ministro: document.getElementById('ministro').value,
                 dirigente: document.getElementById('dirigente').value,
-                observacoes: document.getElementById('observacoes').value
+                observacoes: document.getElementById('observacoes').value,
+                total_presentes: (parseInt(document.getElementById('homens').value) || 0) + 
+                                (parseInt(document.getElementById('mulheres').value) || 0) + 
+                                (parseInt(document.getElementById('criancas').value) || 0)
             };
+            
             try {
                 // 1. Salvar Culto
-                const { data: culto, error } = await supabase.from('cultos').insert(novoCulto).select().single();
-                if (error) throw error;
+                const cultoSalvo = await salvarCultoNeon(novoCulto);
+                
                 // 2. Salvar Escalas
                 const escalasInputs = [
                     { dept: 'Diaconato', val: document.getElementById('diaconato').value },
@@ -753,17 +889,19 @@
                     { dept: 'Música', val: document.getElementById('musica').value },
                     { dept: 'Mídia', val: document.getElementById('midia').value }
                 ];
+                
                 const escalasParaSalvar = escalasInputs
                     .filter(s => s.val && s.val.trim() !== "")
                     .map(s => ({
-                        culto_id: culto.id,
+                        culto_id: cultoSalvo.id,
                         departamento: s.dept,
                         nomes: s.val
                     }));
+                
                 if (escalasParaSalvar.length > 0) {
-                    const { error: errorEscalas } = await supabase.from('escalas').insert(escalasParaSalvar);
-                    if (errorEscalas) throw errorEscalas;
+                    await salvarEscalasNeon(escalasParaSalvar);
                 }
+                
                 mostrarToast('Culto registrado com sucesso!', 'success');
                 document.getElementById('culto-form').reset();
                 document.getElementById('total-presentes').value = 0;
@@ -785,9 +923,7 @@
             document.getElementById('loading-text').innerText = "Excluindo registro...";
           
             try {
-                const { error } = await supabase.from('cultos').delete().eq('id', id);
-                if (error) throw error;
-              
+                await deletarCultoNeon(id);
                 mostrarToast('Culto removido com sucesso.', 'success');
                 await carregarDados();
             } catch (err) {
@@ -801,6 +937,7 @@
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Salvando membro...";
+            
             const id = document.getElementById('membro-id').value;
             const nome = document.getElementById('membro-nome').value.trim();
             const telefone = document.getElementById('membro-telefone').value.trim();
@@ -809,11 +946,11 @@
             const fez_rhema = document.getElementById('membro-rhema').value === 'true';
             const escola_ministros = document.getElementById('membro-escola').value === 'true';
             const deptos = Array.from(document.getElementById('membro-departamentos').selectedOptions).map(opt => opt.value);
+            
             try {
-                let error;
                 if (id) {
                     // Atualizar membro existente
-                    ({ error } = await supabase.from('membros').update({
+                    await atualizarMembroNeon(id, {
                         nome,
                         telefone,
                         nascimento,
@@ -821,30 +958,33 @@
                         departamentos: deptos,
                         fez_rhema,
                         escola_ministros
-                    }).eq('id', id));
+                    });
                     mostrarToast('Membro atualizado com sucesso!', 'success');
                 } else {
                     // Inserir novo membro
-                    ({ error } = await supabase.from('membros').insert({
+                    await salvarMembroNeon({
                         nome,
                         telefone,
                         nascimento,
                         email,
                         departamentos: deptos,
                         fez_rhema,
-                        escola_ministros
-                    }));
+                        escola_ministros,
+                        ativo: true
+                    });
                     mostrarToast('Membro cadastrado com sucesso!', 'success');
                 }
-                if (error) throw error;
+                
                 fecharModalMembro();
-                await carregarDados(); // recarrega tudo
+                await carregarDados();
             } catch (err) {
                 mostrarToast('Erro ao salvar membro: ' + err.message, 'error');
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
+        
+        // [Restante do código permanece igual - funções de renderização, UI, etc.]
         
         function fecharModalMembro() {
             document.getElementById('modal-membro').style.display = 'none';
@@ -855,6 +995,7 @@
         function editarMembro(id) {
             const membro = estado.membros.find(m => m.id === id);
             if (!membro) return;
+            
             document.getElementById('membro-id').value = membro.id;
             document.getElementById('membro-nome').value = membro.nome;
             document.getElementById('membro-telefone').value = membro.telefone || '';
@@ -862,10 +1003,12 @@
             document.getElementById('membro-email').value = membro.email || '';
             document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
             document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
+            
             const select = document.getElementById('membro-departamentos');
             Array.from(select.options).forEach(opt => {
                 opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
             });
+            
             document.getElementById('modal-membro').style.display = 'flex';
         }
         
@@ -875,13 +1018,9 @@
             document.getElementById('loading-text').innerText = "Excluindo membro...";
           
             try {
-                const { error } = await supabase.from('membros').delete().eq('id', id);
-                if (!error) {
-                    mostrarToast('Membro excluído', 'success');
-                    await carregarDados();
-                } else {
-                    throw error;
-                }
+                await deletarMembroNeon(id);
+                mostrarToast('Membro excluído', 'success');
+                await carregarDados();
             } catch(err) {
                  mostrarToast('Erro ao excluir: ' + err.message, 'error');
             } finally {
@@ -889,7 +1028,7 @@
             }
         }
         
-        // --- 5. RENDERIZAÇÃO DA UI ---
+        // --- 7. RENDERIZAÇÃO DA UI ---
         function atualizarUI() {
             renderDashboard();
             renderHistorico();
@@ -955,7 +1094,9 @@
             const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
             const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
             const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+            
             if(estado.charts.growth) estado.charts.growth.destroy();
+            
             estado.charts.growth = new Chart(ctxGrowth, {
                 type: 'line',
                 data: {
@@ -979,6 +1120,7 @@
           
             const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
             if(estado.charts.demo) estado.charts.demo.destroy();
+            
             estado.charts.demo = new Chart(ctxDemo, {
                 type: 'bar',
                 data: {
@@ -997,6 +1139,7 @@
         function renderHistorico() {
             const container = document.getElementById('historico-table-container');
             if(!container) return;
+            
             container.innerHTML = `
                 <div class="table-responsive">
                     <table class="table" style="width:100%; border-collapse:collapse;">
@@ -1033,9 +1176,11 @@
           
             container.innerHTML = '';
             const ultimosCultos = estado.cultos.slice(0, 6);
+            
             ultimosCultos.forEach(culto => {
                 const escalasCulto = estado.escalas.filter(e => e.culto_id === culto.id);
                 if(escalasCulto.length === 0) return;
+                
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
@@ -1052,7 +1197,7 @@
                 container.appendChild(card);
             });
         }
-      
+        
         function calcularIdade(dataNasc) {
             if (!dataNasc) return '';
             const [y, m, d] = dataNasc.split('-').map(Number);
@@ -1162,25 +1307,27 @@
                 </div>
             `;
             
-            // Adicionar eventos aos filtros (debounce simples)
+            // Adicionar eventos aos filtros
             ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.oninput = el.onchange = () => renderMembros();
             });
         }
         
-        // --- 6. FUNÇÕES AUXILIARES E EVENTOS ---
+        // --- 8. FUNÇÕES AUXILIARES E EVENTOS ---
         function cacheDOM() {
             // Formulários
             const formCulto = document.getElementById('culto-form');
             if(formCulto) formCulto.addEventListener('submit', salvarCulto);
             const formMembro = document.getElementById('form-membro');
             if(formMembro) formMembro.addEventListener('submit', salvarMembro);
+            
             // Soma automática
             ['homens', 'mulheres', 'criancas'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.addEventListener('input', calcularTotal);
             });
+            
             // Data de hoje
             const dateInput = document.getElementById('data-culto');
             if(dateInput) dateInput.valueAsDate = new Date();
@@ -1191,6 +1338,7 @@
             document.querySelectorAll('.nav-menu a').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
+                    
                     // UI de Navegação
                     document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
                     link.classList.add('active');
@@ -1202,6 +1350,7 @@
                   
                     // Atualiza título
                     document.getElementById('current-title').innerText = link.innerText.split(" ")[0];
+                    
                     // Fecha sidebar no mobile
                     if(window.innerWidth < 992) {
                         document.getElementById('sidebar').classList.remove('active');
@@ -1211,6 +1360,7 @@
                     if(targetId === 'dashboard') renderCharts();
                 });
             });
+            
             // Mobile toggle
             document.getElementById('menu-toggle').addEventListener('click', () => {
                 document.getElementById('sidebar').classList.toggle('active');
