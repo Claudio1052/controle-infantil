@@ -10,7 +10,6 @@
     
     <style>
         /* Todo o CSS permanece EXATAMENTE como estava */
-        /* Variáveis de Tema Padrão (Light Mode) */
         :root {
             --primary: #1a5fb4;
             --primary-dark: #0d4a8a;
@@ -34,15 +33,14 @@
             --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             --radius: 8px;
         }
-        /* Dark Mode */
         [data-theme="dark"] {
             --primary: #4a8ad4;
             --primary-dark: #1a5fb4;
             --secondary: #f39c12;
             --dark: #f8f9fa;
-            --bg-main: #1f2a37; /* slate-800 */
-            --bg-card: #303e4d; /* slate-700 */
-            --bg-sidebar: #111827; /* gray-900 */
+            --bg-main: #1f2a37;
+            --bg-card: #303e4d;
+            --bg-sidebar: #111827;
             --text-main: #f9fafb;
             --text-light: #1f2a37;
             --border-color: #3e4d5f;
@@ -55,7 +53,6 @@
             color: var(--text-main);
             transition: all 0.3s;
         }
-        /* Layout */
         .wrapper { display: flex; min-height: 100vh; }
         .sidebar {
             width: 250px;
@@ -74,7 +71,6 @@
             flex-grow: 1;
             transition: margin-left 0.3s;
         }
-        /* Sidebar - Brand & Navigation */
         .brand {
             font-family: 'Poppins', sans-serif;
             font-size: 1.5rem;
@@ -101,7 +97,6 @@
         }
         .nav-menu i { width: 20px; text-align: center; }
         .badge { background: var(--secondary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: auto; }
-        /* Top Bar */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 30px;
@@ -127,7 +122,6 @@
         }
         .user-info span { font-size: 0.9rem; font-weight: 500; display: block; line-height: 1.2; }
         .user-info small { font-size: 0.75rem; color: var(--gray); }
-        /* Content & Tabs */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .section {
@@ -144,8 +138,6 @@
             margin-bottom: 20px;
             color: var(--primary-dark);
         }
-      
-        /* Cards Dashboard */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -168,7 +160,6 @@
         .card-success .card-icon { background: rgba(39, 174, 96, 0.1); color: var(--success); }
         .card-info .card-icon { background: rgba(26, 95, 180, 0.1); color: var(--primary); }
         .card-warning .card-icon { background: rgba(230, 126, 34, 0.1); color: var(--secondary); }
-        /* Charts */
         .chart-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -181,8 +172,6 @@
             flex-direction: column;
             justify-content: center;
         }
-      
-        /* Forms */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -210,7 +199,6 @@
             box-shadow: 0 0 0 2px rgba(26, 95, 180, 0.2);
             background-color: var(--bg-card);
         }
-        /* Buttons */
         .btn {
             padding: 10px 20px;
             border-radius: var(--radius);
@@ -228,7 +216,6 @@
         .btn-secondary:hover { background-color: var(--border-color); }
         .btn-danger { background-color: var(--danger); color: white; }
         .btn-danger:hover { background-color: #a71d2a; }
-        /* Settings */
         .setting-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 15px 0;
@@ -248,7 +235,6 @@
         }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(24px); }
-        /* Conexão Status */
         .connection-status {
             display: flex; align-items: center; gap: 8px;
             font-size: 0.8rem; padding: 5px 10px; border-radius: 4px;
@@ -258,7 +244,6 @@
         }
         .status-ok { background-color: var(--success); }
         .status-error { background-color: var(--danger); }
-        /* Loading */
         #loading-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             z-index: 2000; display: flex; flex-direction: column;
@@ -275,8 +260,6 @@
             margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      
-        /* Toast */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2100; }
         .toast {
             padding: 10px 20px; margin-top: 10px; border-radius: var(--radius);
@@ -289,7 +272,6 @@
         .toast-error { border-color: var(--danger); }
         .toast-info { border-color: var(--info); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        /* Mobile */
         .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); }
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
@@ -341,6 +323,7 @@
             </div>
             <div id="dashboard" class="tab-content active">
                 <div class="dashboard-grid" id="dashboard-cards">
+                    <!-- Cards serão gerados dinamicamente -->
                 </div>
               
                 <div class="chart-grid">
@@ -366,6 +349,7 @@
                                 </tr>
                             </thead>
                             <tbody id="timeline-events">
+                                <!-- Timeline será gerada dinamicamente -->
                             </tbody>
                         </table>
                     </div>
@@ -449,6 +433,7 @@
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>
                     <div id="historico-table-container">
+                        <!-- Tabela será gerada dinamicamente -->
                     </div>
                 </div>
             </div>
@@ -456,6 +441,7 @@
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-clipboard-list"></i> Escalas Recentes</h3>
                     <div class="dashboard-grid" id="lista-escalas">
+                        <!-- Escalas serão geradas dinamicamente -->
                     </div>
                 </div>
             </div>
@@ -617,11 +603,12 @@
   
     <div id="toast-container"></div>
     <script>
-        // --- 1. CONFIGURAÇÃO NEON ---
-        const NEON_API_URL = 'https://ep-polished-cherry-ad6mnvj4.apirest.c-2.us-east-1.aws.neon.tech/neondb/rest/v1';
+        // ============================================
+        // 1. CONFIGURAÇÃO NEON
+        // ============================================
+        const NEON_API_URL = 'https://ep-polished-cherry-ad6mnvj4.apirest.c-2.us-east-1.aws.neon.tech/rest/v1';
         const NEON_API_KEY = 'napi_tep10r2emlhfglu7j2o4ehj3jyyn817kq2x5s4rtnkafouvy8sy7jqe0wf97vs73';
         
-        // Headers para todas as requisições
         const neonHeaders = {
             'apikey': NEON_API_KEY,
             'Authorization': `Bearer ${NEON_API_KEY}`,
@@ -629,7 +616,9 @@
             'Prefer': 'return=representation'
         };
         
-        // --- 2. ESTADO GLOBAL ---
+        // ============================================
+        // 2. ESTADO GLOBAL
+        // ============================================
         let estado = {
             cultos: [],
             escalas: [],
@@ -638,7 +627,9 @@
             theme: localStorage.getItem('app-theme') || 'light'
         };
         
-        // --- 3. FUNÇÕES DE CONEXÃO COM NEON ---
+        // ============================================
+        // 3. FUNÇÕES DE CONEXÃO COM NEON
+        // ============================================
         async function neonFetch(endpoint, options = {}) {
             const url = `${NEON_API_URL}/${endpoint}`;
             
@@ -655,7 +646,6 @@
                     throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
                 
-                // Para DELETE sem retorno
                 if (response.status === 204 || options.method === 'DELETE') {
                     return null;
                 }
@@ -667,10 +657,8 @@
             }
         }
         
-        // --- 4. FUNÇÕES DE BANCO DE DADOS ---
         async function carregarCultos() {
             try {
-                // Usando RPC para contar e selecionar, ou apenas selecionar
                 const cultos = await neonFetch('cultos?select=*&order=data_culto.desc');
                 return Array.isArray(cultos) ? cultos : [];
             } catch (error) {
@@ -707,7 +695,7 @@
                 });
                 
                 if (result && result.length > 0) {
-                    return result[0]; // Retorna o culto inserido
+                    return result[0];
                 }
                 throw new Error('Nenhum dado retornado');
             } catch (error) {
@@ -787,29 +775,31 @@
             }
         }
         
-        // --- 5. INICIALIZAÇÃO ---
+        // ============================================
+        // 4. INICIALIZAÇÃO
+        // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
-            // Aplica tema
             document.body.setAttribute('data-theme', estado.theme);
             document.getElementById('theme-toggle').checked = estado.theme === 'dark';
           
             cacheDOM();
             bindEvents();
           
-            // Tenta a conexão e carrega os dados
             await checkConnection();
             await carregarDados();
           
             document.getElementById('loading-overlay').style.display = 'none';
         });
         
+        // ============================================
+        // 5. FUNÇÃO DE CONEXÃO
+        // ============================================
         async function checkConnection() {
             const statusEl = document.getElementById('connection-status');
             statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
             
             try {
-                // Testa conexão com o Neon
-                const response = await fetch(NEON_API_URL + '/cultos?limit=1', {
+                const response = await fetch(NEON_API_URL, {
                     headers: neonHeaders
                 });
                 
@@ -817,8 +807,6 @@
                     statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado ao Neon';
                     statusEl.className = 'connection-status status-ok';
                     mostrarToast('Conectado ao banco Neon!', 'success');
-                } else if (response.status === 401 || response.status === 403) {
-                    throw new Error('API Key inválida ou expirada');
                 } else {
                     throw new Error(`Status: ${response.status}`);
                 }
@@ -831,11 +819,13 @@
             }
         }
         
+        // ============================================
+        // 6. CARREGAR DADOS
+        // ============================================
         async function carregarDados() {
             document.getElementById('loading-text').innerText = "Carregando dados...";
           
             try {
-                // Carrega todos os dados em paralelo
                 const [cultos, escalas, membros] = await Promise.all([
                     carregarCultos(),
                     carregarEscalas(),
@@ -854,7 +844,9 @@
             }
         }
         
-        // --- 6. FUNÇÕES PRINCIPAIS DO APP ---
+        // ============================================
+        // 7. FUNÇÕES PRINCIPAIS DO APP
+        // ============================================
         async function salvarCulto(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -879,10 +871,8 @@
             };
             
             try {
-                // 1. Salvar Culto
                 const cultoSalvo = await salvarCultoNeon(novoCulto);
                 
-                // 2. Salvar Escalas
                 const escalasInputs = [
                     { dept: 'Diaconato', val: document.getElementById('diaconato').value },
                     { dept: 'Infantil', val: document.getElementById('infantil').value },
@@ -906,7 +896,6 @@
                 document.getElementById('culto-form').reset();
                 document.getElementById('total-presentes').value = 0;
               
-                // Recarregar e navegar
                 await carregarDados();
                 document.getElementById('dashboard-tab').click();
             } catch (error) {
@@ -949,7 +938,6 @@
             
             try {
                 if (id) {
-                    // Atualizar membro existente
                     await atualizarMembroNeon(id, {
                         nome,
                         telefone,
@@ -961,7 +949,6 @@
                     });
                     mostrarToast('Membro atualizado com sucesso!', 'success');
                 } else {
-                    // Inserir novo membro
                     await salvarMembroNeon({
                         nome,
                         telefone,
@@ -983,8 +970,6 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-        
-        // [Restante do código permanece igual - funções de renderização, UI, etc.]
         
         function fecharModalMembro() {
             document.getElementById('modal-membro').style.display = 'none';
@@ -1028,7 +1013,9 @@
             }
         }
         
-        // --- 7. RENDERIZAÇÃO DA UI ---
+        // ============================================
+        // 8. RENDERIZAÇÃO DA UI
+        // ============================================
         function atualizarUI() {
             renderDashboard();
             renderHistorico();
@@ -1043,7 +1030,6 @@
             const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
             const totalMembros = estado.membros.length;
           
-            // Cards
             document.getElementById('dashboard-cards').innerHTML = `
                 <div class="card card-info">
                     <div class="card-header">
@@ -1076,8 +1062,6 @@
         
         function renderTimeline() {
             const tbody = document.getElementById('timeline-events');
-          
-            // Renderiza apenas os 5 últimos cultos
             tbody.innerHTML = estado.cultos.slice(0, 5).map(c => `
                 <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:15px; font-weight:500;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
@@ -1089,14 +1073,11 @@
         }
         
         function renderCharts() {
-            // Gráfico 1: Crescimento (Linha)
             const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
             const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
             const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
             const ctxGrowth = document.getElementById('growthChart').getContext('2d');
-            
             if(estado.charts.growth) estado.charts.growth.destroy();
-            
             estado.charts.growth = new Chart(ctxGrowth, {
                 type: 'line',
                 data: {
@@ -1113,14 +1094,12 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
             
-            // Gráfico 2: Demográfico (Barra)
             const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
             const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
             const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
           
             const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
             if(estado.charts.demo) estado.charts.demo.destroy();
-            
             estado.charts.demo = new Chart(ctxDemo, {
                 type: 'bar',
                 data: {
@@ -1139,7 +1118,6 @@
         function renderHistorico() {
             const container = document.getElementById('historico-table-container');
             if(!container) return;
-            
             container.innerHTML = `
                 <div class="table-responsive">
                     <table class="table" style="width:100%; border-collapse:collapse;">
@@ -1176,11 +1154,9 @@
           
             container.innerHTML = '';
             const ultimosCultos = estado.cultos.slice(0, 6);
-            
             ultimosCultos.forEach(culto => {
                 const escalasCulto = estado.escalas.filter(e => e.culto_id === culto.id);
                 if(escalasCulto.length === 0) return;
-                
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
@@ -1197,7 +1173,7 @@
                 container.appendChild(card);
             });
         }
-        
+      
         function calcularIdade(dataNasc) {
             if (!dataNasc) return '';
             const [y, m, d] = dataNasc.split('-').map(Number);
@@ -1221,7 +1197,6 @@
             const container = document.getElementById('membros-table-container');
             if (!container) return;
             
-            // Aplicar filtros
             let membrosFiltrados = [...estado.membros];
             const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
             const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
@@ -1307,61 +1282,52 @@
                 </div>
             `;
             
-            // Adicionar eventos aos filtros
             ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.oninput = el.onchange = () => renderMembros();
             });
         }
         
-        // --- 8. FUNÇÕES AUXILIARES E EVENTOS ---
+        // ============================================
+        // 9. FUNÇÕES AUXILIARES E EVENTOS
+        // ============================================
         function cacheDOM() {
-            // Formulários
             const formCulto = document.getElementById('culto-form');
             if(formCulto) formCulto.addEventListener('submit', salvarCulto);
             const formMembro = document.getElementById('form-membro');
             if(formMembro) formMembro.addEventListener('submit', salvarMembro);
             
-            // Soma automática
             ['homens', 'mulheres', 'criancas'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.addEventListener('input', calcularTotal);
             });
             
-            // Data de hoje
             const dateInput = document.getElementById('data-culto');
             if(dateInput) dateInput.valueAsDate = new Date();
         }
         
         function bindEvents() {
-            // Navegação por Tabs
             document.querySelectorAll('.nav-menu a').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     
-                    // UI de Navegação
                     document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
                     link.classList.add('active');
                   
-                    // UI de Conteúdo
                     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     const targetId = link.getAttribute('href').substring(1);
                     document.getElementById(targetId).classList.add('active');
                   
-                    // Atualiza título
                     document.getElementById('current-title').innerText = link.innerText.split(" ")[0];
                     
-                    // Fecha sidebar no mobile
                     if(window.innerWidth < 992) {
                         document.getElementById('sidebar').classList.remove('active');
                     }
                   
-                    // Re-renderiza gráficos ao voltar pro dashboard
                     if(targetId === 'dashboard') renderCharts();
                 });
             });
             
-            // Mobile toggle
             document.getElementById('menu-toggle').addEventListener('click', () => {
                 document.getElementById('sidebar').classList.toggle('active');
             });
@@ -1379,13 +1345,15 @@
             document.getElementById('historico-badge').innerText = estado.cultos.length;
         }
       
-        // --- Settings Functions ---
+        // ============================================
+        // 10. SETTINGS FUNCTIONS
+        // ============================================
         window.toggleDarkMode = (isDark) => {
             const newTheme = isDark ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
             estado.theme = newTheme;
             localStorage.setItem('app-theme', newTheme);
-            if(estado.charts.growth) renderCharts(); // Atualiza gráficos para novo tema
+            if(estado.charts.growth) renderCharts();
         };
         
         window.exportData = () => {
@@ -1423,7 +1391,9 @@
             }
         };
         
-        // --- Modals and Toast ---
+        // ============================================
+        // 11. MODALS AND TOAST
+        // ============================================
         window.openModalMembro = () => {
             document.getElementById('modal-membro').style.display='flex';
         };
