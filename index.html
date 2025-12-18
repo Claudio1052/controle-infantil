@@ -11,6 +11,7 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   
     <style>
+        /* Todo o CSS permanece EXATAMENTE como estava */
         /* Variáveis de Tema Padrão (Light Mode) */
         :root {
             --primary: #1a5fb4;
@@ -619,9 +620,9 @@
   
     <div id="toast-container"></div>
     <script>
-        // --- 1. CONFIGURAÇÃO SUPABASE (CORRIGIDO) ---
+        // --- 1. CONFIGURAÇÃO SUPABASE (ATUALIZADO COM SUAS CREDENCIAIS) ---
         const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_igy3vc6mRB71VSZiQ8Q5Yw_74lcTlnK';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTAzNzcsImV4cCI6MjA3ODYyNjM3N30.K_QwwVD20xnlhNvTxb0jdTeH_3LU30W_aDeHquraQg8';
       
         // Criando o cliente Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1075,7 +1076,7 @@ function renderMembros() {
                     ${membrosFiltrados.map(m => {
                         const idade = calcularIdade(m.nascimento);
                         const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
-                        const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' Festa' : '';
+                        const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' 🎂' : '';
                         let birthDisplay = '-';
                         if (m.nascimento) {
                             const [y, month, day] = m.nascimento.split('-').map(Number);
@@ -1094,8 +1095,8 @@ function renderMembros() {
                                     ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
                                 </td>
                                 <td style="padding:15px;">
-                                    ${m.fez_rhema ? 'Rhema' : ''}
-                                    ${m.escola_ministros ? 'Ministros' : ''}
+                                    ${m.fez_rhema ? '✅ Rhema' : ''}
+                                    ${m.escola_ministros ? '✅ Ministros' : ''}
                                     ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
                                 </td>
                                 <td style="padding:15px;">
@@ -1238,5 +1239,3 @@ document.getElementById('membro-telefone')?.addEventListener('input', function (
     </script>
 </body>
 </html>
-
-
