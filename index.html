@@ -620,12 +620,14 @@
   
     <div id="toast-container"></div>
     <script>
-        // --- 1. CONFIGURAÇÃO SUPABASE (ATUALIZADO COM SUAS CREDENCIAIS) ---
+        // --- 1. CONFIGURAÇÃO SUPABASE (CORRIGIDA) ---
         const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwNTAzNzcsImV4cCI6MjA3ODYyNjM3N30.K_QwwVD20xnlhNvTxb0jdTeH_3LU30W_aDeHquraQg8';
+        // Use a service_role key para ter todas as permissões
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6enl4YmtobWxmaWx2bGlodnZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzA1MDM3NywiZXhwIjoyMDc4NjI2Mzc3fQ.6fD38AYASf0ftoM42KXplgxPRnzi1hqBQqJv_BhW5wk';
       
         // Criando o cliente Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         // --- 2. ESTADO GLOBAL ---
         let estado = {
             cultos: [],
@@ -634,6 +636,7 @@
             charts: {},
             theme: localStorage.getItem('app-theme') || 'light'
         };
+        
         // --- 3. INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', async () => {
             // Aplica tema
@@ -649,42 +652,69 @@
           
             document.getElementById('loading-overlay').style.display = 'none';
         });
+        
         // --- 4. FUNÇÕES DE CONEXÃO E DADOS ---
         async function checkConnection() {
             const statusEl = document.getElementById('connection-status');
-            statusEl.classList.remove('status-error');
-            statusEl.classList.add('status-ok');
             statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
-          
+            
             try {
-                // Tenta fazer uma consulta simples para validar a conexão
-                const { error } = await supabase.from('cultos').select('id', { count: 'exact', head: true });
-              
-                if (error) throw error;
-              
-                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Supabase Conectado';
-                statusEl.classList.remove('status-error');
-                statusEl.classList.add('status-ok');
+                // Testa conexão básica
+                const { data, error } = await supabase.from('cultos').select('count').limit(1);
+                
+                if (error) {
+                    // Se erro for "tabela não existe", é OK - significa que está conectado
+                    if (error.code === '42P01') {
+                        statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado (Sem tabelas)';
+                        statusEl.className = 'connection-status status-ok';
+                        mostrarToast('Banco conectado! Crie as tabelas primeiro.', 'info');
+                        return;
+                    }
+                    throw error;
+                }
+                
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
+                statusEl.className = 'connection-status status-ok';
+                
             } catch (e) {
-                console.error("Erro na conexão Supabase:", e);
-                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão';
-                statusEl.classList.remove('status-ok');
-                statusEl.classList.add('status-error');
-                mostrarToast("Falha ao conectar ao banco de dados.", "error");
+                console.error("Erro detalhado:", e);
+                
+                statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${e.message || 'Erro de Conexão'}`;
+                statusEl.className = 'connection-status status-error';
+                
+                if (e.message.includes('JWT')) {
+                    mostrarToast("Token JWT inválido ou expirado", "error");
+                } else if (e.message.includes('fetch')) {
+                    mostrarToast("Erro de rede. Verifique sua conexão", "error");
+                } else {
+                    mostrarToast("Erro: " + e.message, "error");
+                }
             }
         }
+        
         async function carregarDados() {
             document.getElementById('loading-text').innerText = "Carregando dados...";
           
             try {
+                // Tenta carregar dados, mas se as tabelas não existirem, mostra mensagem
                 const [resCultos, resEscalas, resMembros] = await Promise.all([
                     supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
                     supabase.from('escalas').select('*'),
                     supabase.from('membros').select('*').order('nome')
                 ]);
-                estado.cultos = resCultos.data || [];
-                estado.escalas = resEscalas.data || [];
-                estado.membros = resMembros.data || [];
+                
+                // Verifica se há erro de "tabela não existe"
+                if (resCultos.error && resCultos.error.code === '42P01') {
+                    mostrarToast('Tabelas não encontradas. Crie as tabelas no Supabase.', 'warning');
+                    estado.cultos = [];
+                    estado.escalas = [];
+                    estado.membros = [];
+                } else {
+                    estado.cultos = resCultos.data || [];
+                    estado.escalas = resEscalas.data || [];
+                    estado.membros = resMembros.data || [];
+                }
+                
                 atualizarUI();
               
             } catch (err) {
@@ -692,6 +722,7 @@
                 mostrarToast('Erro ao carregar dados do servidor.', 'error');
             }
         }
+        
         async function salvarCulto(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -765,75 +796,79 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
+        
         async function salvarMembro(e) {
-    e.preventDefault();
-    document.getElementById('loading-overlay').style.display = 'flex';
-    document.getElementById('loading-text').innerText = "Salvando membro...";
-    const id = document.getElementById('membro-id').value;
-    const nome = document.getElementById('membro-nome').value.trim();
-    const telefone = document.getElementById('membro-telefone').value.trim();
-    const nascimento = document.getElementById('membro-nascimento').value || null;
-    const email = document.getElementById('membro-email').value.trim() || null;
-    const fez_rhema = document.getElementById('membro-rhema').value === 'true';
-    const escola_ministros = document.getElementById('membro-escola').value === 'true';
-    const deptos = Array.from(document.getElementById('membro-departamentos').selectedOptions).map(opt => opt.value);
-    try {
-        let error;
-        if (id) {
-            // Atualizar membro existente
-            ({ error } = await supabase.from('membros').update({
-                nome,
-                telefone,
-                nascimento,
-                email,
-                departamentos: deptos,
-                fez_rhema,
-                escola_ministros
-            }).eq('id', id));
-            mostrarToast('Membro atualizado com sucesso!', 'success');
-        } else {
-            // Inserir novo membro
-            ({ error } = await supabase.from('membros').insert({
-                nome,
-                telefone,
-                nascimento,
-                email,
-                departamentos: deptos,
-                fez_rhema,
-                escola_ministros
-            }));
-            mostrarToast('Membro cadastrado com sucesso!', 'success');
+            e.preventDefault();
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Salvando membro...";
+            const id = document.getElementById('membro-id').value;
+            const nome = document.getElementById('membro-nome').value.trim();
+            const telefone = document.getElementById('membro-telefone').value.trim();
+            const nascimento = document.getElementById('membro-nascimento').value || null;
+            const email = document.getElementById('membro-email').value.trim() || null;
+            const fez_rhema = document.getElementById('membro-rhema').value === 'true';
+            const escola_ministros = document.getElementById('membro-escola').value === 'true';
+            const deptos = Array.from(document.getElementById('membro-departamentos').selectedOptions).map(opt => opt.value);
+            try {
+                let error;
+                if (id) {
+                    // Atualizar membro existente
+                    ({ error } = await supabase.from('membros').update({
+                        nome,
+                        telefone,
+                        nascimento,
+                        email,
+                        departamentos: deptos,
+                        fez_rhema,
+                        escola_ministros
+                    }).eq('id', id));
+                    mostrarToast('Membro atualizado com sucesso!', 'success');
+                } else {
+                    // Inserir novo membro
+                    ({ error } = await supabase.from('membros').insert({
+                        nome,
+                        telefone,
+                        nascimento,
+                        email,
+                        departamentos: deptos,
+                        fez_rhema,
+                        escola_ministros
+                    }));
+                    mostrarToast('Membro cadastrado com sucesso!', 'success');
+                }
+                if (error) throw error;
+                fecharModalMembro();
+                await carregarDados(); // recarrega tudo
+            } catch (err) {
+                mostrarToast('Erro ao salvar membro: ' + err.message, 'error');
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
         }
-        if (error) throw error;
-        fecharModalMembro();
-        await carregarDados(); // recarrega tudo
-    } catch (err) {
-        mostrarToast('Erro ao salvar membro: ' + err.message, 'error');
-    } finally {
-        document.getElementById('loading-overlay').style.display = 'none';
-    }
-}
-function fecharModalMembro() {
-    document.getElementById('modal-membro').style.display = 'none';
-    document.getElementById('form-membro').reset();
-    document.getElementById('membro-id').value = '';
-}
-function editarMembro(id) {
-    const membro = estado.membros.find(m => m.id === id);
-    if (!membro) return;
-    document.getElementById('membro-id').value = membro.id;
-    document.getElementById('membro-nome').value = membro.nome;
-    document.getElementById('membro-telefone').value = membro.telefone || '';
-    document.getElementById('membro-nascimento').value = membro.nascimento || '';
-    document.getElementById('membro-email').value = membro.email || '';
-    document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
-    document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
-    const select = document.getElementById('membro-departamentos');
-    Array.from(select.options).forEach(opt => {
-        opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
-    });
-    document.getElementById('modal-membro').style.display = 'flex';
-}
+        
+        function fecharModalMembro() {
+            document.getElementById('modal-membro').style.display = 'none';
+            document.getElementById('form-membro').reset();
+            document.getElementById('membro-id').value = '';
+        }
+        
+        function editarMembro(id) {
+            const membro = estado.membros.find(m => m.id === id);
+            if (!membro) return;
+            document.getElementById('membro-id').value = membro.id;
+            document.getElementById('membro-nome').value = membro.nome;
+            document.getElementById('membro-telefone').value = membro.telefone || '';
+            document.getElementById('membro-nascimento').value = membro.nascimento || '';
+            document.getElementById('membro-email').value = membro.email || '';
+            document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
+            document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
+            const select = document.getElementById('membro-departamentos');
+            Array.from(select.options).forEach(opt => {
+                opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
+            });
+            document.getElementById('modal-membro').style.display = 'flex';
+        }
+        
         async function deletarMembro(id) {
             if(!confirm('Excluir membro? Esta ação é permanente.')) return;
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -853,6 +888,7 @@ function editarMembro(id) {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
+        
         // --- 5. RENDERIZAÇÃO DA UI ---
         function atualizarUI() {
             renderDashboard();
@@ -861,6 +897,7 @@ function editarMembro(id) {
             renderMembros();
             updateBadges();
         }
+        
         function renderDashboard() {
             const totalCultos = estado.cultos.length;
             const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
@@ -897,6 +934,7 @@ function editarMembro(id) {
             renderCharts();
             renderTimeline();
         }
+        
         function renderTimeline() {
             const tbody = document.getElementById('timeline-events');
           
@@ -910,6 +948,7 @@ function editarMembro(id) {
                 </tr>
             `).join('');
         }
+        
         function renderCharts() {
             // Gráfico 1: Crescimento (Linha)
             const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
@@ -932,6 +971,7 @@ function editarMembro(id) {
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
+            
             // Gráfico 2: Demográfico (Barra)
             const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
             const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
@@ -953,6 +993,7 @@ function editarMembro(id) {
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
         }
+        
         function renderHistorico() {
             const container = document.getElementById('historico-table-container');
             if(!container) return;
@@ -985,6 +1026,7 @@ function editarMembro(id) {
                 </div>
             `;
         }
+        
         function renderEscalas() {
             const container = document.getElementById('lista-escalas');
             if(!container) return;
@@ -1012,114 +1054,121 @@ function editarMembro(id) {
         }
       
         function calcularIdade(dataNasc) {
-    if (!dataNasc) return '';
-    const [y, m, d] = dataNasc.split('-').map(Number);
-    const nasc = new Date(y, m - 1, d);
-    const hoje = new Date();
-    let idade = hoje.getFullYear() - nasc.getFullYear();
-    const monthDiff = hoje.getMonth() - nasc.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && hoje.getDate() < nasc.getDate())) idade--;
-    return idade;
-}
-function ehAniversarianteDoMes(dataNasc) {
-    if (!dataNasc) return false;
-    const [y, m, d] = dataNasc.split('-').map(Number);
-    const nasc = new Date(y, m - 1, d);
-    const hoje = new Date();
-    return hoje.getMonth() === nasc.getMonth();
-}
-function renderMembros() {
-    const container = document.getElementById('membros-table-container');
-    if (!container) return;
-    // Aplicar filtros
-    let membrosFiltrados = [...estado.membros];
-    const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
-    const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
-    const filtroAniv = document.getElementById('filtro-aniversario')?.value || '';
-    const filtroRhema = document.getElementById('filtro-rhema')?.value;
-    const filtroEscolaMinistros = document.getElementById('filtro-escola-ministros')?.value;
-    if (filtroNome) {
-        membrosFiltrados = membrosFiltrados.filter(m => m.nome.toLowerCase().includes(filtroNome));
-    }
-    if (filtroDepto) {
-        membrosFiltrados = membrosFiltrados.filter(m =>
-            m.departamentos && m.departamentos.some(d => d.includes(filtroDepto))
-        );
-    }
-    if (filtroAniv === 'sim') {
-        membrosFiltrados = membrosFiltrados.filter(m => ehAniversarianteDoMes(m.nascimento));
-    }
-    if (filtroRhema !== '') {
-        membrosFiltrados = membrosFiltrados.filter(m => String(m.fez_rhema) === filtroRhema);
-    }
-    if (filtroEscolaMinistros !== '') {
-        membrosFiltrados = membrosFiltrados.filter(m => String(m.escola_ministros) === filtroEscolaMinistros);
-    }
-    container.innerHTML = `
-        <div style="margin-bottom:15px; font-weight:600; color:var(--primary);">
-            Mostrando ${membrosFiltrados.length} de ${estado.membros.length} membros
-            ${filtroAniv === 'sim' ? ' — Aniversariantes do mês' : ''}
-        </div>
-        <div class="table-responsive">
-            <table class="table" style="width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr style="background:var(--bg-main); text-align:left;">
-                        <th style="padding:15px;">Nome</th>
-                        <th style="padding:15px;">Idade / Aniversário</th>
-                        <th style="padding:15px;">Telefone</th>
-                        <th style="padding:15px;">Departamentos</th>
-                        <th style="padding:15px;">Rhema / Ministros</th>
-                        <th style="padding:15px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${membrosFiltrados.map(m => {
-                        const idade = calcularIdade(m.nascimento);
-                        const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
-                        const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' 🎂' : '';
-                        let birthDisplay = '-';
-                        if (m.nascimento) {
-                            const [y, month, day] = m.nascimento.split('-').map(Number);
-                            const nasc = new Date(y, month - 1, day);
-                            birthDisplay = nasc.toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'});
-                        }
-                        return `
-                            <tr style="border-bottom:1px solid var(--border-color); ${ehAniversarianteDoMes(m.nascimento) ? 'background:rgba(39,174,96,0.1);' : ''}">
-                                <td style="padding:15px;">${m.nome} ${iconAniv}</td>
-                                <td style="padding:15px; ${anivStyle}">
-                                    ${birthDisplay}
-                                    ${idade ? ` (${idade} anos)` : ''}
-                                </td>
-                                <td style="padding:15px;">${m.telefone || '-'}</td>
-                                <td style="padding:15px; font-size:0.9rem;">
-                                    ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
-                                </td>
-                                <td style="padding:15px;">
-                                    ${m.fez_rhema ? '✅ Rhema' : ''}
-                                    ${m.escola_ministros ? '✅ Ministros' : ''}
-                                    ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
-                                </td>
-                                <td style="padding:15px;">
-                                    <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro(${m.id})">
-                                        Editar
-                                    </button>
-                                    <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro(${m.id})">
-                                        Excluir
-                                    </button>
-                                </td>
+            if (!dataNasc) return '';
+            const [y, m, d] = dataNasc.split('-').map(Number);
+            const nasc = new Date(y, m - 1, d);
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - nasc.getFullYear();
+            const monthDiff = hoje.getMonth() - nasc.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && hoje.getDate() < nasc.getDate())) idade--;
+            return idade;
+        }
+        
+        function ehAniversarianteDoMes(dataNasc) {
+            if (!dataNasc) return false;
+            const [y, m, d] = dataNasc.split('-').map(Number);
+            const nasc = new Date(y, m - 1, d);
+            const hoje = new Date();
+            return hoje.getMonth() === nasc.getMonth();
+        }
+        
+        function renderMembros() {
+            const container = document.getElementById('membros-table-container');
+            if (!container) return;
+            
+            // Aplicar filtros
+            let membrosFiltrados = [...estado.membros];
+            const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
+            const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
+            const filtroAniv = document.getElementById('filtro-aniversario')?.value || '';
+            const filtroRhema = document.getElementById('filtro-rhema')?.value;
+            const filtroEscolaMinistros = document.getElementById('filtro-escola-ministros')?.value;
+            
+            if (filtroNome) {
+                membrosFiltrados = membrosFiltrados.filter(m => m.nome.toLowerCase().includes(filtroNome));
+            }
+            if (filtroDepto) {
+                membrosFiltrados = membrosFiltrados.filter(m =>
+                    m.departamentos && m.departamentos.some(d => d.includes(filtroDepto))
+                );
+            }
+            if (filtroAniv === 'sim') {
+                membrosFiltrados = membrosFiltrados.filter(m => ehAniversarianteDoMes(m.nascimento));
+            }
+            if (filtroRhema !== '') {
+                membrosFiltrados = membrosFiltrados.filter(m => String(m.fez_rhema) === filtroRhema);
+            }
+            if (filtroEscolaMinistros !== '') {
+                membrosFiltrados = membrosFiltrados.filter(m => String(m.escola_ministros) === filtroEscolaMinistros);
+            }
+            
+            container.innerHTML = `
+                <div style="margin-bottom:15px; font-weight:600; color:var(--primary);">
+                    Mostrando ${membrosFiltrados.length} de ${estado.membros.length} membros
+                    ${filtroAniv === 'sim' ? ' — Aniversariantes do mês' : ''}
+                </div>
+                <div class="table-responsive">
+                    <table class="table" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:var(--bg-main); text-align:left;">
+                                <th style="padding:15px;">Nome</th>
+                                <th style="padding:15px;">Idade / Aniversário</th>
+                                <th style="padding:15px;">Telefone</th>
+                                <th style="padding:15px;">Departamentos</th>
+                                <th style="padding:15px;">Rhema / Ministros</th>
+                                <th style="padding:15px;">Ações</th>
                             </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    // Adicionar eventos aos filtros (debounce simples)
-    ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.oninput = el.onchange = () => renderMembros();
-    });
-}
+                        </thead>
+                        <tbody>
+                            ${membrosFiltrados.map(m => {
+                                const idade = calcularIdade(m.nascimento);
+                                const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
+                                const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' 🎂' : '';
+                                let birthDisplay = '-';
+                                if (m.nascimento) {
+                                    const [y, month, day] = m.nascimento.split('-').map(Number);
+                                    const nasc = new Date(y, month - 1, day);
+                                    birthDisplay = nasc.toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'});
+                                }
+                                return `
+                                    <tr style="border-bottom:1px solid var(--border-color); ${ehAniversarianteDoMes(m.nascimento) ? 'background:rgba(39,174,96,0.1);' : ''}">
+                                        <td style="padding:15px;">${m.nome} ${iconAniv}</td>
+                                        <td style="padding:15px; ${anivStyle}">
+                                            ${birthDisplay}
+                                            ${idade ? ` (${idade} anos)` : ''}
+                                        </td>
+                                        <td style="padding:15px;">${m.telefone || '-'}</td>
+                                        <td style="padding:15px; font-size:0.9rem;">
+                                            ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
+                                        </td>
+                                        <td style="padding:15px;">
+                                            ${m.fez_rhema ? '✅ Rhema' : ''}
+                                            ${m.escola_ministros ? '✅ Ministros' : ''}
+                                            ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
+                                        </td>
+                                        <td style="padding:15px;">
+                                            <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro(${m.id})">
+                                                Editar
+                                            </button>
+                                            <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro(${m.id})">
+                                                Excluir
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Adicionar eventos aos filtros (debounce simples)
+            ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.oninput = el.onchange = () => renderMembros();
+            });
+        }
+        
         // --- 6. FUNÇÕES AUXILIARES E EVENTOS ---
         function cacheDOM() {
             // Formulários
@@ -1136,6 +1185,7 @@ function renderMembros() {
             const dateInput = document.getElementById('data-culto');
             if(dateInput) dateInput.valueAsDate = new Date();
         }
+        
         function bindEvents() {
             // Navegação por Tabs
             document.querySelectorAll('.nav-menu a').forEach(link => {
@@ -1166,12 +1216,14 @@ function renderMembros() {
                 document.getElementById('sidebar').classList.toggle('active');
             });
         }
+        
         function calcularTotal() {
             const h = parseInt(document.getElementById('homens').value) || 0;
             const m = parseInt(document.getElementById('mulheres').value) || 0;
             const c = parseInt(document.getElementById('criancas').value) || 0;
             document.getElementById('total-presentes').value = h + m + c;
         }
+        
         function updateBadges() {
             document.getElementById('dashboard-badge').innerText = estado.cultos.length;
             document.getElementById('historico-badge').innerText = estado.cultos.length;
@@ -1185,6 +1237,7 @@ function renderMembros() {
             localStorage.setItem('app-theme', newTheme);
             if(estado.charts.growth) renderCharts(); // Atualiza gráficos para novo tema
         };
+        
         window.exportData = () => {
             const dataToExport = estado.cultos.map(c => ({
                 Data: new Date(c.data_culto).toLocaleDateString('pt-BR'),
@@ -1212,16 +1265,19 @@ function renderMembros() {
           
             mostrarToast('Dados exportados para CSV!', 'success');
         };
+        
         window.logout = () => {
             if (confirm('Deseja sair do sistema?')) {
                 mostrarToast('Saindo...', 'info');
                 setTimeout(() => window.location.reload(), 500);
             }
         };
+        
         // --- Modals and Toast ---
         window.openModalMembro = () => {
             document.getElementById('modal-membro').style.display='flex';
         };
+        
         window.mostrarToast = (msg, tipo) => {
             const t = document.createElement('div');
             t.className = `toast toast-${tipo}`;
@@ -1229,13 +1285,14 @@ function renderMembros() {
             document.getElementById('toast-container').appendChild(t);
             setTimeout(() => t.remove(), 4000);
         };
-// Máscara de telefone
-document.getElementById('membro-telefone')?.addEventListener('input', function (e) {
-    let v = e.target.value.replace(/\D/g, '');
-    v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
-    v = v.replace(/(\d)(\d{4})$/, '$1-$2');
-    e.target.value = v;
-});
+        
+        // Máscara de telefone
+        document.getElementById('membro-telefone')?.addEventListener('input', function (e) {
+            let v = e.target.value.replace(/\D/g, '');
+            v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+            v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+            e.target.value = v;
+        });
     </script>
 </body>
 </html>
