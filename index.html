@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Nhost SDK -->
+    <script src="https://unpkg.com/@nhost/nhost-js/dist/nhost.js"></script>
     <style>
         /* Variáveis de Tema Padrão (Light Mode) */
         :root {
@@ -707,12 +709,23 @@
     </div>
 </div>
     <div id="toast-container"></div>
-    <script type="module">
-        import { neon } from 'https://unpkg.com/@neondatabase/serverless@latest';
+    <script>
+        // --- CONFIGURAÇÃO DO NHOST ---
+        const nhostConfig = {
+            subdomain: 'wnbdmvjfqgwqgljgeoys',
+            region: 'sa-east-1'
+        };
 
-        const connectionString = 'postgresql://neondb_owner:npg_NJlZav8I3Vrz@ep-polished-cherry-ad6mnvj4-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-        const sql = neon(connectionString);
-        // --- 2. ESTADO GLOBAL ---
+        // Inicializa o cliente Nhost
+        const nhost = Nhost.createClient({
+            subdomain: nhostConfig.subdomain,
+            region: nhostConfig.region
+        });
+
+        // Obtém o cliente GraphQL
+        const nhostClient = nhost.graphql;
+
+        // --- ESTADO GLOBAL ---
         let estado = {
             cultos: [],
             escalas: [],
@@ -720,6 +733,203 @@
             charts: {},
             theme: localStorage.getItem('app-theme') || 'light'
         };
+
+        // --- QUERIES GRAPHQL ---
+        const QUERIES = {
+            // Cultos
+            GET_CULTOS: `
+                query {
+                    cultos(order_by: {data_culto: desc}) {
+                        id
+                        data_culto
+                        dia_semana
+                        tipo_culto
+                        hora_inicio
+                        hora_termino
+                        tempo_ministerio
+                        homens
+                        mulheres
+                        criancas
+                        ministro
+                        dirigente
+                        observacoes
+                        created_at
+                    }
+                }
+            `,
+            
+            GET_CULTOS_LIMIT: `
+                query($limit: Int!) {
+                    cultos(order_by: {data_culto: desc}, limit: $limit) {
+                        id
+                        data_culto
+                        dia_semana
+                        tipo_culto
+                        hora_inicio
+                        hora_termino
+                        tempo_ministerio
+                        homens
+                        mulheres
+                        criancas
+                        ministro
+                        dirigente
+                        observacoes
+                    }
+                }
+            `,
+
+            // Escalas
+            GET_ESCALAS: `
+                query {
+                    escalas(order_by: {data_escala: desc}) {
+                        id
+                        data_escala
+                        departamento
+                        nomes
+                        culto_id
+                        created_at
+                    }
+                }
+            `,
+
+            // Membros
+            GET_MEMBROS: `
+                query {
+                    membros(order_by: {nome: asc}) {
+                        id
+                        nome
+                        telefone
+                        nascimento
+                        email
+                        departamentos
+                        fez_rhema
+                        escola_ministros
+                        cep
+                        logradouro
+                        numero
+                        complemento
+                        bairro
+                        localidade
+                        uf
+                        ativo
+                        created_at
+                    }
+                }
+            `,
+
+            // Inserções
+            INSERT_CULTO: `
+                mutation($object: cultos_insert_input!) {
+                    insert_cultos_one(object: $object) {
+                        id
+                        data_culto
+                        dia_semana
+                        tipo_culto
+                        hora_inicio
+                        hora_termino
+                        tempo_ministerio
+                        homens
+                        mulheres
+                        criancas
+                        ministro
+                        dirigente
+                        observacoes
+                    }
+                }
+            `,
+
+            INSERT_ESCALAS: `
+                mutation($objects: [escalas_insert_input!]!) {
+                    insert_escalas(objects: $objects) {
+                        returning {
+                            id
+                            data_escala
+                            departamento
+                            nomes
+                        }
+                    }
+                }
+            `,
+
+            INSERT_MEMBRO: `
+                mutation($object: membros_insert_input!) {
+                    insert_membros_one(object: $object) {
+                        id
+                        nome
+                        telefone
+                        nascimento
+                        email
+                        departamentos
+                        fez_rhema
+                        escola_ministros
+                        cep
+                        logradouro
+                        numero
+                        complemento
+                        bairro
+                        localidade
+                        uf
+                    }
+                }
+            `,
+
+            // Atualizações
+            UPDATE_MEMBRO: `
+                mutation($id: uuid!, $object: membros_set_input!) {
+                    update_membros_by_pk(pk_columns: {id: $id}, _set: $object) {
+                        id
+                        nome
+                        telefone
+                        nascimento
+                        email
+                        departamentos
+                        fez_rhema
+                        escola_ministros
+                        cep
+                        logradouro
+                        numero
+                        complemento
+                        bairro
+                        localidade
+                        uf
+                    }
+                }
+            `,
+
+            // Deleções
+            DELETE_CULTO: `
+                mutation($id: uuid!) {
+                    delete_cultos_by_pk(id: $id) {
+                        id
+                    }
+                }
+            `,
+
+            DELETE_ESCALAS_BY_CULTO: `
+                mutation($culto_id: uuid!) {
+                    delete_escalas(where: {culto_id: {_eq: $culto_id}}) {
+                        affected_rows
+                    }
+                }
+            `,
+
+            DELETE_ESCALAS_BY_DATE: `
+                mutation($data_escala: date!) {
+                    delete_escalas(where: {data_escala: {_eq: $data_escala}}) {
+                        affected_rows
+                    }
+                }
+            `,
+
+            DELETE_MEMBRO: `
+                mutation($id: uuid!) {
+                    delete_membros_by_pk(id: $id) {
+                        id
+                    }
+                }
+            `
+        };
+
         // --- 4. INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', async () => {
             document.body.setAttribute('data-theme', estado.theme);
@@ -733,51 +943,58 @@
       
             document.getElementById('loading-overlay').style.display = 'none';
         });
+
         // --- 5. FUNÇÕES DE CONEXÃO E DADOS ---
         async function checkConnection() {
             const statusEl = document.getElementById('connection-status');
             statusEl.classList.remove('status-error');
             statusEl.classList.add('status-ok');
-            statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
+            statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão Nhost...';
       
             try {
-                // Tenta fazer uma consulta simples
-                await sql`SELECT * FROM cultos LIMIT 1`;
-          
-                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Neon Conectado';
-                statusEl.classList.remove('status-error');
-                statusEl.classList.add('status-ok');
+                // Tenta fazer uma consulta simples para testar a conexão
+                const result = await nhostClient.request(QUERIES.GET_CULTOS_LIMIT, { limit: 1 });
+                
+                if (result.data && result.data.cultos) {
+                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Nhost Conectado';
+                    statusEl.classList.remove('status-error');
+                    statusEl.classList.add('status-ok');
+                } else {
+                    throw new Error('Resposta inválida do servidor');
+                }
             } catch (e) {
-                console.error("Erro na conexão Neon:", e);
-                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão';
+                console.error("Erro na conexão Nhost:", e);
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão Nhost';
                 statusEl.classList.remove('status-ok');
                 statusEl.classList.add('status-error');
-                mostrarToast("Falha ao conectar ao banco de dados.", "error");
+                mostrarToast("Falha ao conectar ao Nhost. Verifique as credenciais.", "error");
             }
         }
+
         async function carregarDados() {
             document.getElementById('loading-text').innerText = "Carregando dados...";
       
             try {
                 // Carrega dados em paralelo
-                const [cultosData, escalasData, membrosData] = await Promise.all([
-                    sql`SELECT * FROM cultos ORDER BY data_culto DESC`,
-                    sql`SELECT * FROM escalas ORDER BY data_escala DESC`,
-                    sql`SELECT * FROM membros ORDER BY nome ASC`
+                const [cultosResult, escalasResult, membrosResult] = await Promise.all([
+                    nhostClient.request(QUERIES.GET_CULTOS),
+                    nhostClient.request(QUERIES.GET_ESCALAS),
+                    nhostClient.request(QUERIES.GET_MEMBROS)
                 ]);
                
-                estado.cultos = cultosData || [];
-                estado.escalas = escalasData || [];
-                estado.membros = membrosData || [];
+                estado.cultos = cultosResult.data?.cultos || [];
+                estado.escalas = escalasResult.data?.escalas || [];
+                estado.membros = membrosResult.data?.membros || [];
                
                 populateDepartamentosSelects();
                 atualizarUI();
           
             } catch (err) {
                 console.error("Erro ao carregar dados:", err);
-                mostrarToast('Erro ao carregar dados do servidor.', 'error');
+                mostrarToast('Erro ao carregar dados do Nhost.', 'error');
             }
         }
+
         async function salvarCulto(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -797,10 +1014,15 @@
                 dirigente: document.getElementById('dirigente').value,
                 observacoes: document.getElementById('observacoes').value
             };
+            
             try {
                 // 1. Salvar Culto
-                const cultoResult = await sql`INSERT INTO cultos ${sql(novoCulto)} RETURNING *`;
-                const culto = cultoResult[0];
+                const cultoResult = await nhostClient.request(QUERIES.INSERT_CULTO, {
+                    object: novoCulto
+                });
+                
+                const culto = cultoResult.data?.insert_cultos_one;
+                if (!culto) throw new Error('Falha ao salvar culto');
                
                 // 2. Salvar Escalas
                 const escalasInputs = [
@@ -830,7 +1052,9 @@
                     }));
                
                 if (escalasParaSalvar.length > 0) {
-                    await sql`INSERT INTO escalas ${sql(escalasParaSalvar)}`;
+                    await nhostClient.request(QUERIES.INSERT_ESCALAS, {
+                        objects: escalasParaSalvar
+                    });
                 }
                
                 mostrarToast('Culto registrado com sucesso!', 'success');
@@ -854,9 +1078,14 @@
       
             try {
                 // Primeiro deleta as escalas associadas
-                await sql`DELETE FROM escalas WHERE culto_id = ${id}`;
+                await nhostClient.request(QUERIES.DELETE_ESCALAS_BY_CULTO, {
+                    culto_id: id
+                });
+                
                 // Depois deleta o culto
-                await sql`DELETE FROM cultos WHERE id = ${id}`;
+                await nhostClient.request(QUERIES.DELETE_CULTO, {
+                    id: id
+                });
           
                 mostrarToast('Culto removido com sucesso.', 'success');
                 await carregarDados();
@@ -866,6 +1095,7 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
+
         async function salvarMembro(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -906,10 +1136,17 @@
            
             try {
                 if (id) {
-                    await sql`UPDATE membros SET ${sql(membroData)} WHERE id = ${id}`;
+                    // Atualizar membro existente
+                    await nhostClient.request(QUERIES.UPDATE_MEMBRO, {
+                        id: id,
+                        object: membroData
+                    });
                     mostrarToast('Membro atualizado com sucesso!', 'success');
                 } else {
-                    await sql`INSERT INTO membros ${sql(membroData)}`;
+                    // Criar novo membro
+                    await nhostClient.request(QUERIES.INSERT_MEMBRO, {
+                        object: membroData
+                    });
                     mostrarToast('Membro cadastrado com sucesso!', 'success');
                 }
                
@@ -961,7 +1198,9 @@
             document.getElementById('loading-text').innerText = "Excluindo membro...";
       
             try {
-                await sql`DELETE FROM membros WHERE id = ${id}`;
+                await nhostClient.request(QUERIES.DELETE_MEMBRO, {
+                    id: id
+                });
                 mostrarToast('Membro excluído', 'success');
                 await carregarDados();
             } catch(err) {
@@ -970,6 +1209,73 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
+
+        async function salvarEscala(e) {
+            e.preventDefault();
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Salvando Escala...";
+           
+            const data_escala = document.getElementById('data-escala').value;
+            if (!data_escala) {
+                mostrarToast('Data obrigatória', 'error');
+                document.getElementById('loading-overlay').style.display = 'none';
+                return;
+            }
+           
+            const editDate = document.getElementById('edit-date').value;
+            try {
+                if (editDate) {
+                    await nhostClient.request(QUERIES.DELETE_ESCALAS_BY_DATE, {
+                        data_escala: editDate
+                    });
+                }
+               
+                const escalasInputs = [
+                    { dept: 'Diaconato', id: 'diaconato-escala' },
+                    { dept: 'Música', id: 'musica-escala' },
+                    { dept: 'Mídia', id: 'midia-escala' },
+                    { dept: 'Recepção', id: 'recepcao-escala' },
+                    { dept: 'Jovens', id: 'jovens-escala' },
+                    { dept: 'Transito', id: 'transito-escala' },
+                    { dept: 'Concelheiros', id: 'concelheiros-escala' },
+                    { dept: 'Livraria', id: 'livraria-escala' },
+                    { dept: 'Ministros', id: 'ministros-escala' },
+                    { dept: 'Infantil 0-2', id: 'infantil-0-2' },
+                    { dept: 'Infantil 3-5', id: 'infantil-3-5' },
+                    { dept: 'Infantil 6-8', id: 'infantil-6-8' },
+                    { dept: 'Infantil 9-12', id: 'infantil-9-12' }
+                ];
+               
+                const escalasParaSalvar = escalasInputs
+                    .map(s => ({
+                        dept: s.dept,
+                        val: Array.from(document.getElementById(s.id).selectedOptions).map(opt => opt.value).join(', ')
+                    }))
+                    .filter(s => s.val && s.val.trim() !== "")
+                    .map(s => ({
+                        data_escala,
+                        departamento: s.dept,
+                        nomes: s.val
+                    }));
+               
+                if (escalasParaSalvar.length > 0) {
+                    await nhostClient.request(QUERIES.INSERT_ESCALAS, {
+                        objects: escalasParaSalvar
+                    });
+                }
+               
+                mostrarToast('Escala salva com sucesso!', 'success');
+                document.getElementById('edit-date').value = '';
+                fecharModalEscala();
+                await carregarDados();
+            } catch (error) {
+                console.error("Erro ao salvar escala:", error);
+                mostrarToast('Erro ao salvar no banco de dados.', 'error');
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
         // --- 6. RENDERIZAÇÃO DA UI ---
         function atualizarUI() {
             renderDashboard();
@@ -1096,7 +1402,7 @@
                                     <td style="padding:15px;"><strong>${c.homens+c.mulheres+c.criancas}</strong></td>
                                     <td style="padding:15px;">${c.ministro}</td>
                                     <td style="padding:15px;">
-                                        <button class="btn" style="color:var(--danger); background:none; border:none; padding:0;" onclick="deletarCulto(${c.id})"><i class="fas fa-trash"></i></button>
+                                        <button class="btn" style="color:var(--danger); background:none; border:none; padding:0;" onclick="deletarCulto('${c.id}')"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -1227,7 +1533,7 @@
                             ${membrosFiltrados.map(m => {
                                 const idade = calcularIdade(m.nascimento);
                                 const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
-                                const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' Festa' : '';
+                                const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' 🎉' : '';
                                 let birthDisplay = '-';
                                 if (m.nascimento) {
                                     const [y, month, day] = m.nascimento.split('-').map(Number);
@@ -1237,7 +1543,7 @@
                                 const endereco = formatarEndereco(m);
                                 return `
                                     <tr style="border-bottom:1px solid var(--border-color); ${ehAniversarianteDoMes(m.nascimento) ? 'background:rgba(39,174,96,0.1);' : ''}">
-                                        <td style="padding:15px;">${m.nome} ${iconAniv}</td>
+                                        <td style="padding:15px;">${m.nome}${iconAniv}</td>
                                         <td style="padding:15px; ${anivStyle}">
                                             ${birthDisplay}
                                             ${idade ? ` (${idade} anos)` : ''}
@@ -1248,16 +1554,16 @@
                                             ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
                                         </td>
                                         <td style="padding:15px;">
-                                            ${m.fez_rhema ? 'Rhema' : ''}
-                                            ${m.escola_ministros ? 'Ministros' : ''}
+                                            ${m.fez_rhema ? '✓ Rhema' : ''}
+                                            ${m.escola_ministros ? '✓ Ministros' : ''}
                                             ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
                                         </td>
                                         <td style="padding:15px;">${endereco}</td>
                                         <td style="padding:15px;">
-                                            <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro(${m.id})">
+                                            <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro('${m.id}')">
                                                 Editar
                                             </button>
-                                            <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro(${m.id})">
+                                            <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro('${m.id}')">
                                                 Excluir
                                             </button>
                                         </td>
@@ -1274,6 +1580,7 @@
                 if (el) el.oninput = el.onchange = () => renderMembros();
             });
         }
+
         // --- 7. FUNÇÕES AUXILIARES E EVENTOS ---
         function cacheDOM() {
             const formCulto = document.getElementById('culto-form');
@@ -1459,68 +1766,6 @@
             document.getElementById('toast-container').appendChild(t);
             setTimeout(() => t.remove(), 4000);
         };
-       
-        async function salvarEscala(e) {
-            e.preventDefault();
-            document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('loading-text').innerText = "Salvando Escala...";
-           
-            const data_escala = document.getElementById('data-escala').value;
-            if (!data_escala) {
-                mostrarToast('Data obrigatória', 'error');
-                document.getElementById('loading-overlay').style.display = 'none';
-                return;
-            }
-           
-            const editDate = document.getElementById('edit-date').value;
-            try {
-                if (editDate) {
-                    await sql`DELETE FROM escalas WHERE data_escala = ${editDate}`;
-                }
-               
-                const escalasInputs = [
-                    { dept: 'Diaconato', id: 'diaconato-escala' },
-                    { dept: 'Música', id: 'musica-escala' },
-                    { dept: 'Mídia', id: 'midia-escala' },
-                    { dept: 'Recepção', id: 'recepcao-escala' },
-                    { dept: 'Jovens', id: 'jovens-escala' },
-                    { dept: 'Transito', id: 'transito-escala' },
-                    { dept: 'Concelheiros', id: 'concelheiros-escala' },
-                    { dept: 'Livraria', id: 'livraria-escala' },
-                    { dept: 'Ministros', id: 'ministros-escala' },
-                    { dept: 'Infantil 0-2', id: 'infantil-0-2' },
-                    { dept: 'Infantil 3-5', id: 'infantil-3-5' },
-                    { dept: 'Infantil 6-8', id: 'infantil-6-8' },
-                    { dept: 'Infantil 9-12', id: 'infantil-9-12' }
-                ];
-               
-                const escalasParaSalvar = escalasInputs
-                    .map(s => ({
-                        dept: s.dept,
-                        val: Array.from(document.getElementById(s.id).selectedOptions).map(opt => opt.value).join(', ')
-                    }))
-                    .filter(s => s.val && s.val.trim() !== "")
-                    .map(s => ({
-                        data_escala,
-                        departamento: s.dept,
-                        nomes: s.val
-                    }));
-               
-                if (escalasParaSalvar.length > 0) {
-                    await sql`INSERT INTO escalas ${sql(escalasParaSalvar)}`;
-                }
-               
-                mostrarToast('Escala salva com sucesso!', 'success');
-                document.getElementById('edit-date').value = '';
-                fecharModalEscala();
-                await carregarDados();
-            } catch (error) {
-                console.error("Erro ao salvar escala:", error);
-                mostrarToast('Erro ao salvar no banco de dados.', 'error');
-            } finally {
-                document.getElementById('loading-overlay').style.display = 'none';
-            }
-        }
        
         function editarEscala(date) {
             document.getElementById('modal-escala').style.display = 'flex';
