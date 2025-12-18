@@ -710,7 +710,7 @@
     <script type="module">
         import { neon } from 'https://unpkg.com/@neondatabase/serverless@latest';
 
-        const connectionString = 'postgresql://neondb_owner:npg_NJlZav8I3Vrz@ep-polished-cherry-ad6mnvj4-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require';
+        const connectionString = 'postgresql://neondb_owner:npg_NJlZav8I3Vrz@ep-polished-cherry-ad6mnvj4-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
         const sql = neon(connectionString);
         // --- 2. ESTADO GLOBAL ---
         let estado = {
