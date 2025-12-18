@@ -6,10 +6,12 @@
     <title>Gestão Ministerial | Verbo da Vida</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  
     <style>
-        /* Todo o CSS permanece EXATAMENTE como estava */
+        /* Variáveis de Tema Padrão (Light Mode) */
         :root {
             --primary: #1a5fb4;
             --primary-dark: #0d4a8a;
@@ -33,14 +35,15 @@
             --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             --radius: 8px;
         }
+        /* Dark Mode */
         [data-theme="dark"] {
             --primary: #4a8ad4;
             --primary-dark: #1a5fb4;
             --secondary: #f39c12;
             --dark: #f8f9fa;
-            --bg-main: #1f2a37;
-            --bg-card: #303e4d;
-            --bg-sidebar: #111827;
+            --bg-main: #1f2a37; /* slate-800 */
+            --bg-card: #303e4d; /* slate-700 */
+            --bg-sidebar: #111827; /* gray-900 */
             --text-main: #f9fafb;
             --text-light: #1f2a37;
             --border-color: #3e4d5f;
@@ -53,6 +56,7 @@
             color: var(--text-main);
             transition: all 0.3s;
         }
+        /* Layout */
         .wrapper { display: flex; min-height: 100vh; }
         .sidebar {
             width: 250px;
@@ -71,6 +75,7 @@
             flex-grow: 1;
             transition: margin-left 0.3s;
         }
+        /* Sidebar - Brand & Navigation */
         .brand {
             font-family: 'Poppins', sans-serif;
             font-size: 1.5rem;
@@ -97,6 +102,7 @@
         }
         .nav-menu i { width: 20px; text-align: center; }
         .badge { background: var(--secondary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: auto; }
+        /* Top Bar */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 30px;
@@ -122,6 +128,7 @@
         }
         .user-info span { font-size: 0.9rem; font-weight: 500; display: block; line-height: 1.2; }
         .user-info small { font-size: 0.75rem; color: var(--gray); }
+        /* Content & Tabs */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .section {
@@ -138,6 +145,8 @@
             margin-bottom: 20px;
             color: var(--primary-dark);
         }
+      
+        /* Cards Dashboard */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -160,6 +169,7 @@
         .card-success .card-icon { background: rgba(39, 174, 96, 0.1); color: var(--success); }
         .card-info .card-icon { background: rgba(26, 95, 180, 0.1); color: var(--primary); }
         .card-warning .card-icon { background: rgba(230, 126, 34, 0.1); color: var(--secondary); }
+        /* Charts */
         .chart-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -172,6 +182,8 @@
             flex-direction: column;
             justify-content: center;
         }
+      
+        /* Forms */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -199,6 +211,7 @@
             box-shadow: 0 0 0 2px rgba(26, 95, 180, 0.2);
             background-color: var(--bg-card);
         }
+        /* Buttons */
         .btn {
             padding: 10px 20px;
             border-radius: var(--radius);
@@ -216,6 +229,7 @@
         .btn-secondary:hover { background-color: var(--border-color); }
         .btn-danger { background-color: var(--danger); color: white; }
         .btn-danger:hover { background-color: #a71d2a; }
+        /* Settings */
         .setting-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 15px 0;
@@ -235,6 +249,7 @@
         }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(24px); }
+        /* Conexão Status */
         .connection-status {
             display: flex; align-items: center; gap: 8px;
             font-size: 0.8rem; padding: 5px 10px; border-radius: 4px;
@@ -244,6 +259,7 @@
         }
         .status-ok { background-color: var(--success); }
         .status-error { background-color: var(--danger); }
+        /* Loading */
         #loading-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             z-index: 2000; display: flex; flex-direction: column;
@@ -260,6 +276,8 @@
             margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      
+        /* Toast */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2100; }
         .toast {
             padding: 10px 20px; margin-top: 10px; border-radius: var(--radius);
@@ -272,6 +290,7 @@
         .toast-error { border-color: var(--danger); }
         .toast-info { border-color: var(--info); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* Mobile */
         .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); }
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
@@ -323,8 +342,7 @@
             </div>
             <div id="dashboard" class="tab-content active">
                 <div class="dashboard-grid" id="dashboard-cards">
-                    <!-- Cards serão gerados dinamicamente -->
-                </div>
+                    </div>
               
                 <div class="chart-grid">
                     <div class="section">
@@ -349,8 +367,7 @@
                                 </tr>
                             </thead>
                             <tbody id="timeline-events">
-                                <!-- Timeline será gerada dinamicamente -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -433,77 +450,75 @@
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>
                     <div id="historico-table-container">
-                        <!-- Tabela será gerada dinamicamente -->
-                    </div>
+                        </div>
                 </div>
             </div>
             <div id="escalas" class="tab-content">
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-clipboard-list"></i> Escalas Recentes</h3>
                     <div class="dashboard-grid" id="lista-escalas">
-                        <!-- Escalas serão geradas dinamicamente -->
-                    </div>
+                        </div>
                 </div>
             </div>
             <div id="membros" class="tab-content">
-                <div class="section">
-                    <h3 class="section-title">Gestão de Membros</h3>
-                   
-                    <!-- Filtros -->
-                    <div style="margin-bottom: 25px; background: var(--bg-main); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <h4 style="margin-bottom: 15px; color: var(--primary);">Filtros</h4>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label>Pesquisar por nome</label>
-                                <input type="text" id="filtro-nome" class="input-control" placeholder="Digite o nome...">
-                            </div>
-                            <div class="input-group">
-                                <label>Departamento</label>
-                                <select id="filtro-departamento" class="input-control">
-                                    <option value="">Todos</option>
-                                    <option>Diaconato</option>
-                                    <option>Música</option>
-                                    <option>Infantil</option>
-                                    <option>Mídia</option>
-                                    <option>Recepção</option>
-                                    <option>Jovens</option>
-                                    <option>Transito</option>
-                                    <option>Concelheiros</option>
-                                    <option>Livraria</option>
-                                    <option>Ministros</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Aniversário este mês</label>
-                                <select id="filtro-aniversario" class="input-control">
-                                    <option value="">Não</option>
-                                    <option value="sim">Sim (destaque)</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Fez Rhema?</label>
-                                <select id="filtro-rhema" class="input-control">
-                                    <option value="">Todos</option>
-                                    <option value="true">Sim</option>
-                                    <option value="false">Não</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Fez Escola de Ministros?</label>
-                                <select id="filtro-escola-ministros" class="input-control">
-                                    <option value="">Todos</option>
-                                    <option value="true">Sim</option>
-                                    <option value="false">Não</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px;">
-                        Novo Membro
-                    </button>
-                    <div id="membros-table-container"></div>
+    <div class="section">
+        <h3 class="section-title">Gestão de Membros</h3>
+       
+        <!-- Filtros -->
+        <div style="margin-bottom: 25px; background: var(--bg-main); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow);">
+            <h4 style="margin-bottom: 15px; color: var(--primary);">Filtros</h4>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Pesquisar por nome</label>
+                    <input type="text" id="filtro-nome" class="input-control" placeholder="Digite o nome...">
+                </div>
+                <div class="input-group">
+                    <label>Departamento</label>
+                    <select id="filtro-departamento" class="input-control">
+                        <option value="">Todos</option>
+                        <option>Diaconato</option>
+                        <option>Música</option>
+                        <option>Infantil</option>
+                        <option>Mídia</option>
+                        <option>Recepção</option>
+                        <option>Jovens</option>
+                        <option>Transito</option>
+                         <option>Concelheiros</option>
+                         <option>Livraria</option>
+                        <option>Ministros</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Aniversário este mês</label>
+                    <select id="filtro-aniversario" class="input-control">
+                        <option value="">Não</option>
+                        <option value="sim">Sim (destaque)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Fez Rhema?</label>
+                    <select id="filtro-rhema" class="input-control">
+                        <option value="">Todos</option>
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Fez Escola de Ministros?</label>
+                    <select id="filtro-escola-ministros" class="input-control">
+                        <option value="">Todos</option>
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
                 </div>
             </div>
+        </div>
+        <button class="btn btn-primary" onclick="openModalMembro()" style="margin-bottom:20px;">
+            Novo Membro
+        </button>
+        <div id="membros-table-container"></div>
+    </div>
+</div>
             <div id="configuracoes" class="tab-content">
                 <div class="section" style="max-width: 600px; margin: 0 auto;">
                     <h3 class="section-title"><i class="fas fa-cog"></i> Configurações do Sistema</h3>
@@ -538,87 +553,79 @@
         </main>
     </div>
     <div class="modal" id="modal-membro" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:1000;">
-        <div class="modal-content" style="background:var(--bg-card); padding:30px; border-radius:var(--radius); width:90%; max-width:500px; box-shadow:var(--shadow);">
-            <h3 class="section-title" style="margin-bottom:20px;">Novo / Editar Membro</h3>
-            <form id="form-membro">
-                <input type="hidden" id="membro-id">
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label for="membro-nome">Nome Completo *</label>
-                        <input type="text" id="membro-nome" class="input-control" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="membro-telefone">Telefone (WhatsApp)</label>
-                        <input type="tel" id="membro-telefone" class="input-control" placeholder="(99) 99999-9999">
-                    </div>
+    <div class="modal-content" style="background:var(--bg-card); padding:30px; border-radius:var(--radius); width:90%; max-width:500px; box-shadow:var(--shadow);">
+        <h3 class="section-title" style="margin-bottom:20px;">Novo / Editar Membro</h3>
+        <form id="form-membro">
+            <input type="hidden" id="membro-id">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="membro-nome">Nome Completo *</label>
+                    <input type="text" id="membro-nome" class="input-control" required>
                 </div>
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label for="membro-nascimento">Data de Nascimento</label>
-                        <input type="date" id="membro-nascimento" class="input-control">
-                    </div>
-                    <div class="input-group">
-                        <label for="membro-email">E-mail</label>
-                        <input type="email" id="membro-email" class="input-control">
-                    </div>
+                <div class="input-group">
+                    <label for="membro-telefone">Telefone (WhatsApp)</label>
+                    <input type="tel" id="membro-telefone" class="input-control" placeholder="(99) 99999-9999">
                 </div>
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label>Fez Rhema?</label>
-                        <select id="membro-rhema" class="input-control">
-                            <option value="false">Não</option>
-                            <option value="true">Sim</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Escola de Ministros?</label>
-                        <select id="membro-escola" class="input-control">
-                            <option value="false">Não</option>
-                            <option value="true">Sim</option>
-                        </select>
-                    </div>
+            </div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="membro-nascimento">Data de Nascimento</label>
+                    <input type="date" id="membro-nascimento" class="input-control">
                 </div>
-                <div class="input-group" style="margin:20px 0;">
-                    <label for="membro-departamentos">Departamentos</label>
-                    <select id="membro-departamentos" class="input-control" multiple>
-                        <option value="Diaconato">Diaconato</option>
-                        <option value="Música">Música</option>
-                        <option value="Infantil">Infantil</option>
-                        <option value="Mídia">Mídia</option>
-                        <option value="Recepção">Recepção</option>
-                        <option value="Jovens">Jovens</option>
-                        <option value="Transito">Transito</option>
-                        <option value="Concelheiros">Concelheiros</option>
-                        <option value="Livraria">Livraria</option>
-                        <option value="Ministros">Ministros</option>
+                <div class="input-group">
+                    <label for="membro-email">E-mail</label>
+                    <input type="email" id="membro-email" class="input-control">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Fez Rhema?</label>
+                    <select id="membro-rhema" class="input-control">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
                     </select>
                 </div>
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                    <button type="button" class="btn btn-secondary" onclick="fecharModalMembro()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar Membro</button>
+                <div class="input-group">
+                    <label>Escola de Ministros?</label>
+                    <select id="membro-escola" class="input-control">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
                 </div>
-            </form>
-        </div>
+            </div>
+            <div class="input-group" style="margin:20px 0;">
+                <label for="membro-departamentos">Departamentos</label>
+                <select id="membro-departamentos" class="input-control" multiple>
+                    <option value="Diaconato">Diaconato</option>
+                    <option value="Música">Música</option>
+                    <option value="Infantil">Infantil</option>
+                    <option value="Mídia">Mídia</option>
+                    <option value="Recepção">Recepção</option>
+                    <option value="Jovens">Jovens</option>
+                    <option value="Transito">Transito</option>
+                     <option value="Concelheiros">Concelheiros</option>
+                     <option value="Livraria">Livraria</option>
+                     <option value="Ministros">Ministros</option>
+    
+                </select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" class="btn btn-secondary" onclick="fecharModalMembro()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Membro</button>
+            </div>
+        </form>
     </div>
+</div>
   
     <div id="toast-container"></div>
     <script>
-        // ============================================
-        // 1. CONFIGURAÇÃO NEON
-        // ============================================
-        const NEON_API_URL = 'https://ep-polished-cherry-ad6mnvj4.apirest.c-2.us-east-1.aws.neon.tech/rest/v1';
-        const NEON_API_KEY = 'napi_tep10r2emlhfglu7j2o4ehj3jyyn817kq2x5s4rtnkafouvy8sy7jqe0wf97vs73';
-        
-        const neonHeaders = {
-            'apikey': NEON_API_KEY,
-            'Authorization': `Bearer ${NEON_API_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-        };
-        
-        // ============================================
-        // 2. ESTADO GLOBAL
-        // ============================================
+        // --- 1. CONFIGURAÇÃO SUPABASE (CORRIGIDO) ---
+        const SUPABASE_URL = 'https://wzzyxbkhmlfilvlihvvl.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_igy3vc6mRB71VSZiQ8Q5Yw_74lcTlnK';
+      
+        // Criando o cliente Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // --- 2. ESTADO GLOBAL ---
         let estado = {
             cultos: [],
             escalas: [],
@@ -626,216 +633,57 @@
             charts: {},
             theme: localStorage.getItem('app-theme') || 'light'
         };
-        
-        // ============================================
-        // 3. FUNÇÕES DE CONEXÃO COM NEON
-        // ============================================
-        async function neonFetch(endpoint, options = {}) {
-            const url = `${NEON_API_URL}/${endpoint}`;
-            
-            const defaultOptions = {
-                headers: neonHeaders,
-                ...options
-            };
-            
-            try {
-                const response = await fetch(url, defaultOptions);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                
-                if (response.status === 204 || options.method === 'DELETE') {
-                    return null;
-                }
-                
-                return await response.json();
-            } catch (error) {
-                console.error(`Erro na requisição para ${endpoint}:`, error);
-                throw error;
-            }
-        }
-        
-        async function carregarCultos() {
-            try {
-                const cultos = await neonFetch('cultos?select=*&order=data_culto.desc');
-                return Array.isArray(cultos) ? cultos : [];
-            } catch (error) {
-                console.error("Erro ao carregar cultos:", error);
-                return [];
-            }
-        }
-        
-        async function carregarEscalas() {
-            try {
-                const escalas = await neonFetch('escalas?select=*');
-                return Array.isArray(escalas) ? escalas : [];
-            } catch (error) {
-                console.error("Erro ao carregar escalas:", error);
-                return [];
-            }
-        }
-        
-        async function carregarMembros() {
-            try {
-                const membros = await neonFetch('membros?select=*&order=nome.asc');
-                return Array.isArray(membros) ? membros : [];
-            } catch (error) {
-                console.error("Erro ao carregar membros:", error);
-                return [];
-            }
-        }
-        
-        async function salvarCultoNeon(culto) {
-            try {
-                const result = await neonFetch('cultos', {
-                    method: 'POST',
-                    body: JSON.stringify(culto)
-                });
-                
-                if (result && result.length > 0) {
-                    return result[0];
-                }
-                throw new Error('Nenhum dado retornado');
-            } catch (error) {
-                console.error("Erro ao salvar culto:", error);
-                throw error;
-            }
-        }
-        
-        async function salvarEscalasNeon(escalas) {
-            try {
-                if (escalas.length === 0) return [];
-                
-                const result = await neonFetch('escalas', {
-                    method: 'POST',
-                    body: JSON.stringify(escalas)
-                });
-                
-                return result || [];
-            } catch (error) {
-                console.error("Erro ao salvar escalas:", error);
-                throw error;
-            }
-        }
-        
-        async function salvarMembroNeon(membro) {
-            try {
-                const result = await neonFetch('membros', {
-                    method: 'POST',
-                    body: JSON.stringify(membro)
-                });
-                
-                if (result && result.length > 0) {
-                    return result[0];
-                }
-                throw new Error('Nenhum dado retornado');
-            } catch (error) {
-                console.error("Erro ao salvar membro:", error);
-                throw error;
-            }
-        }
-        
-        async function atualizarMembroNeon(id, membro) {
-            try {
-                const result = await neonFetch(`membros?id=eq.${id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify(membro)
-                });
-                
-                return result;
-            } catch (error) {
-                console.error("Erro ao atualizar membro:", error);
-                throw error;
-            }
-        }
-        
-        async function deletarCultoNeon(id) {
-            try {
-                await neonFetch(`cultos?id=eq.${id}`, {
-                    method: 'DELETE'
-                });
-                return true;
-            } catch (error) {
-                console.error("Erro ao deletar culto:", error);
-                throw error;
-            }
-        }
-        
-        async function deletarMembroNeon(id) {
-            try {
-                await neonFetch(`membros?id=eq.${id}`, {
-                    method: 'DELETE'
-                });
-                return true;
-            } catch (error) {
-                console.error("Erro ao deletar membro:", error);
-                throw error;
-            }
-        }
-        
-        // ============================================
-        // 4. INICIALIZAÇÃO
-        // ============================================
+        // --- 3. INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', async () => {
+            // Aplica tema
             document.body.setAttribute('data-theme', estado.theme);
             document.getElementById('theme-toggle').checked = estado.theme === 'dark';
           
             cacheDOM();
             bindEvents();
           
+            // Tenta a conexão e carrega os dados
             await checkConnection();
             await carregarDados();
           
             document.getElementById('loading-overlay').style.display = 'none';
         });
-        
-        // ============================================
-        // 5. FUNÇÃO DE CONEXÃO
-        // ============================================
+        // --- 4. FUNÇÕES DE CONEXÃO E DADOS ---
         async function checkConnection() {
             const statusEl = document.getElementById('connection-status');
+            statusEl.classList.remove('status-error');
+            statusEl.classList.add('status-ok');
             statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
-            
+          
             try {
-                const response = await fetch(NEON_API_URL, {
-                    headers: neonHeaders
-                });
-                
-                if (response.status === 200 || response.status === 404) {
-                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Conectado ao Neon';
-                    statusEl.className = 'connection-status status-ok';
-                    mostrarToast('Conectado ao banco Neon!', 'success');
-                } else {
-                    throw new Error(`Status: ${response.status}`);
-                }
-                
+                // Tenta fazer uma consulta simples para validar a conexão
+                const { error } = await supabase.from('cultos').select('id', { count: 'exact', head: true });
+              
+                if (error) throw error;
+              
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Supabase Conectado';
+                statusEl.classList.remove('status-error');
+                statusEl.classList.add('status-ok');
             } catch (e) {
-                console.error("Erro de conexão:", e);
-                statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${e.message || 'Erro de Conexão'}`;
-                statusEl.className = 'connection-status status-error';
-                mostrarToast("Erro: " + e.message, "error");
+                console.error("Erro na conexão Supabase:", e);
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erro de Conexão';
+                statusEl.classList.remove('status-ok');
+                statusEl.classList.add('status-error');
+                mostrarToast("Falha ao conectar ao banco de dados.", "error");
             }
         }
-        
-        // ============================================
-        // 6. CARREGAR DADOS
-        // ============================================
         async function carregarDados() {
             document.getElementById('loading-text').innerText = "Carregando dados...";
           
             try {
-                const [cultos, escalas, membros] = await Promise.all([
-                    carregarCultos(),
-                    carregarEscalas(),
-                    carregarMembros()
+                const [resCultos, resEscalas, resMembros] = await Promise.all([
+                    supabase.from('cultos').select('*').order('data_culto', { ascending: false }),
+                    supabase.from('escalas').select('*'),
+                    supabase.from('membros').select('*').order('nome')
                 ]);
-                
-                estado.cultos = cultos;
-                estado.escalas = escalas;
-                estado.membros = membros;
-                
+                estado.cultos = resCultos.data || [];
+                estado.escalas = resEscalas.data || [];
+                estado.membros = resMembros.data || [];
                 atualizarUI();
               
             } catch (err) {
@@ -843,10 +691,6 @@
                 mostrarToast('Erro ao carregar dados do servidor.', 'error');
             }
         }
-        
-        // ============================================
-        // 7. FUNÇÕES PRINCIPAIS DO APP
-        // ============================================
         async function salvarCulto(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
@@ -864,38 +708,35 @@
                 criancas: parseInt(document.getElementById('criancas').value) || 0,
                 ministro: document.getElementById('ministro').value,
                 dirigente: document.getElementById('dirigente').value,
-                observacoes: document.getElementById('observacoes').value,
-                total_presentes: (parseInt(document.getElementById('homens').value) || 0) + 
-                                (parseInt(document.getElementById('mulheres').value) || 0) + 
-                                (parseInt(document.getElementById('criancas').value) || 0)
+                observacoes: document.getElementById('observacoes').value
             };
-            
             try {
-                const cultoSalvo = await salvarCultoNeon(novoCulto);
-                
+                // 1. Salvar Culto
+                const { data: culto, error } = await supabase.from('cultos').insert(novoCulto).select().single();
+                if (error) throw error;
+                // 2. Salvar Escalas
                 const escalasInputs = [
                     { dept: 'Diaconato', val: document.getElementById('diaconato').value },
                     { dept: 'Infantil', val: document.getElementById('infantil').value },
                     { dept: 'Música', val: document.getElementById('musica').value },
                     { dept: 'Mídia', val: document.getElementById('midia').value }
                 ];
-                
                 const escalasParaSalvar = escalasInputs
                     .filter(s => s.val && s.val.trim() !== "")
                     .map(s => ({
-                        culto_id: cultoSalvo.id,
+                        culto_id: culto.id,
                         departamento: s.dept,
                         nomes: s.val
                     }));
-                
                 if (escalasParaSalvar.length > 0) {
-                    await salvarEscalasNeon(escalasParaSalvar);
+                    const { error: errorEscalas } = await supabase.from('escalas').insert(escalasParaSalvar);
+                    if (errorEscalas) throw errorEscalas;
                 }
-                
                 mostrarToast('Culto registrado com sucesso!', 'success');
                 document.getElementById('culto-form').reset();
                 document.getElementById('total-presentes').value = 0;
               
+                // Recarregar e navegar
                 await carregarDados();
                 document.getElementById('dashboard-tab').click();
             } catch (error) {
@@ -912,7 +753,9 @@
             document.getElementById('loading-text').innerText = "Excluindo registro...";
           
             try {
-                await deletarCultoNeon(id);
+                const { error } = await supabase.from('cultos').delete().eq('id', id);
+                if (error) throw error;
+              
                 mostrarToast('Culto removido com sucesso.', 'success');
                 await carregarDados();
             } catch (err) {
@@ -921,101 +764,95 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-        
         async function salvarMembro(e) {
-            e.preventDefault();
-            document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('loading-text').innerText = "Salvando membro...";
-            
-            const id = document.getElementById('membro-id').value;
-            const nome = document.getElementById('membro-nome').value.trim();
-            const telefone = document.getElementById('membro-telefone').value.trim();
-            const nascimento = document.getElementById('membro-nascimento').value || null;
-            const email = document.getElementById('membro-email').value.trim() || null;
-            const fez_rhema = document.getElementById('membro-rhema').value === 'true';
-            const escola_ministros = document.getElementById('membro-escola').value === 'true';
-            const deptos = Array.from(document.getElementById('membro-departamentos').selectedOptions).map(opt => opt.value);
-            
-            try {
-                if (id) {
-                    await atualizarMembroNeon(id, {
-                        nome,
-                        telefone,
-                        nascimento,
-                        email,
-                        departamentos: deptos,
-                        fez_rhema,
-                        escola_ministros
-                    });
-                    mostrarToast('Membro atualizado com sucesso!', 'success');
-                } else {
-                    await salvarMembroNeon({
-                        nome,
-                        telefone,
-                        nascimento,
-                        email,
-                        departamentos: deptos,
-                        fez_rhema,
-                        escola_ministros,
-                        ativo: true
-                    });
-                    mostrarToast('Membro cadastrado com sucesso!', 'success');
-                }
-                
-                fecharModalMembro();
-                await carregarDados();
-            } catch (err) {
-                mostrarToast('Erro ao salvar membro: ' + err.message, 'error');
-            } finally {
-                document.getElementById('loading-overlay').style.display = 'none';
-            }
+    e.preventDefault();
+    document.getElementById('loading-overlay').style.display = 'flex';
+    document.getElementById('loading-text').innerText = "Salvando membro...";
+    const id = document.getElementById('membro-id').value;
+    const nome = document.getElementById('membro-nome').value.trim();
+    const telefone = document.getElementById('membro-telefone').value.trim();
+    const nascimento = document.getElementById('membro-nascimento').value || null;
+    const email = document.getElementById('membro-email').value.trim() || null;
+    const fez_rhema = document.getElementById('membro-rhema').value === 'true';
+    const escola_ministros = document.getElementById('membro-escola').value === 'true';
+    const deptos = Array.from(document.getElementById('membro-departamentos').selectedOptions).map(opt => opt.value);
+    try {
+        let error;
+        if (id) {
+            // Atualizar membro existente
+            ({ error } = await supabase.from('membros').update({
+                nome,
+                telefone,
+                nascimento,
+                email,
+                departamentos: deptos,
+                fez_rhema,
+                escola_ministros
+            }).eq('id', id));
+            mostrarToast('Membro atualizado com sucesso!', 'success');
+        } else {
+            // Inserir novo membro
+            ({ error } = await supabase.from('membros').insert({
+                nome,
+                telefone,
+                nascimento,
+                email,
+                departamentos: deptos,
+                fez_rhema,
+                escola_ministros
+            }));
+            mostrarToast('Membro cadastrado com sucesso!', 'success');
         }
-        
-        function fecharModalMembro() {
-            document.getElementById('modal-membro').style.display = 'none';
-            document.getElementById('form-membro').reset();
-            document.getElementById('membro-id').value = '';
-        }
-        
-        function editarMembro(id) {
-            const membro = estado.membros.find(m => m.id === id);
-            if (!membro) return;
-            
-            document.getElementById('membro-id').value = membro.id;
-            document.getElementById('membro-nome').value = membro.nome;
-            document.getElementById('membro-telefone').value = membro.telefone || '';
-            document.getElementById('membro-nascimento').value = membro.nascimento || '';
-            document.getElementById('membro-email').value = membro.email || '';
-            document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
-            document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
-            
-            const select = document.getElementById('membro-departamentos');
-            Array.from(select.options).forEach(opt => {
-                opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
-            });
-            
-            document.getElementById('modal-membro').style.display = 'flex';
-        }
-        
+        if (error) throw error;
+        fecharModalMembro();
+        await carregarDados(); // recarrega tudo
+    } catch (err) {
+        mostrarToast('Erro ao salvar membro: ' + err.message, 'error');
+    } finally {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
+}
+function fecharModalMembro() {
+    document.getElementById('modal-membro').style.display = 'none';
+    document.getElementById('form-membro').reset();
+    document.getElementById('membro-id').value = '';
+}
+function editarMembro(id) {
+    const membro = estado.membros.find(m => m.id === id);
+    if (!membro) return;
+    document.getElementById('membro-id').value = membro.id;
+    document.getElementById('membro-nome').value = membro.nome;
+    document.getElementById('membro-telefone').value = membro.telefone || '';
+    document.getElementById('membro-nascimento').value = membro.nascimento || '';
+    document.getElementById('membro-email').value = membro.email || '';
+    document.getElementById('membro-rhema').value = membro.fez_rhema ? 'true' : 'false';
+    document.getElementById('membro-escola').value = membro.escola_ministros ? 'true' : 'false';
+    const select = document.getElementById('membro-departamentos');
+    Array.from(select.options).forEach(opt => {
+        opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
+    });
+    document.getElementById('modal-membro').style.display = 'flex';
+}
         async function deletarMembro(id) {
             if(!confirm('Excluir membro? Esta ação é permanente.')) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Excluindo membro...";
           
             try {
-                await deletarMembroNeon(id);
-                mostrarToast('Membro excluído', 'success');
-                await carregarDados();
+                const { error } = await supabase.from('membros').delete().eq('id', id);
+                if (!error) {
+                    mostrarToast('Membro excluído', 'success');
+                    await carregarDados();
+                } else {
+                    throw error;
+                }
             } catch(err) {
                  mostrarToast('Erro ao excluir: ' + err.message, 'error');
             } finally {
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-        
-        // ============================================
-        // 8. RENDERIZAÇÃO DA UI
-        // ============================================
+        // --- 5. RENDERIZAÇÃO DA UI ---
         function atualizarUI() {
             renderDashboard();
             renderHistorico();
@@ -1023,13 +860,13 @@
             renderMembros();
             updateBadges();
         }
-        
         function renderDashboard() {
             const totalCultos = estado.cultos.length;
             const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
             const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
             const totalMembros = estado.membros.length;
           
+            // Cards
             document.getElementById('dashboard-cards').innerHTML = `
                 <div class="card card-info">
                     <div class="card-header">
@@ -1059,9 +896,10 @@
             renderCharts();
             renderTimeline();
         }
-        
         function renderTimeline() {
             const tbody = document.getElementById('timeline-events');
+          
+            // Renderiza apenas os 5 últimos cultos
             tbody.innerHTML = estado.cultos.slice(0, 5).map(c => `
                 <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:15px; font-weight:500;">${new Date(c.data_culto).toLocaleDateString('pt-BR')}</td>
@@ -1071,8 +909,8 @@
                 </tr>
             `).join('');
         }
-        
         function renderCharts() {
+            // Gráfico 1: Crescimento (Linha)
             const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
             const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
             const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
@@ -1093,7 +931,7 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-            
+            // Gráfico 2: Demográfico (Barra)
             const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
             const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
             const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
@@ -1114,7 +952,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
         }
-        
         function renderHistorico() {
             const container = document.getElementById('historico-table-container');
             if(!container) return;
@@ -1147,7 +984,6 @@
                 </div>
             `;
         }
-        
         function renderEscalas() {
             const container = document.getElementById('lista-escalas');
             if(!container) return;
@@ -1175,187 +1011,179 @@
         }
       
         function calcularIdade(dataNasc) {
-            if (!dataNasc) return '';
-            const [y, m, d] = dataNasc.split('-').map(Number);
-            const nasc = new Date(y, m - 1, d);
-            const hoje = new Date();
-            let idade = hoje.getFullYear() - nasc.getFullYear();
-            const monthDiff = hoje.getMonth() - nasc.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && hoje.getDate() < nasc.getDate())) idade--;
-            return idade;
-        }
-        
-        function ehAniversarianteDoMes(dataNasc) {
-            if (!dataNasc) return false;
-            const [y, m, d] = dataNasc.split('-').map(Number);
-            const nasc = new Date(y, m - 1, d);
-            const hoje = new Date();
-            return hoje.getMonth() === nasc.getMonth();
-        }
-        
-        function renderMembros() {
-            const container = document.getElementById('membros-table-container');
-            if (!container) return;
-            
-            let membrosFiltrados = [...estado.membros];
-            const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
-            const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
-            const filtroAniv = document.getElementById('filtro-aniversario')?.value || '';
-            const filtroRhema = document.getElementById('filtro-rhema')?.value;
-            const filtroEscolaMinistros = document.getElementById('filtro-escola-ministros')?.value;
-            
-            if (filtroNome) {
-                membrosFiltrados = membrosFiltrados.filter(m => m.nome.toLowerCase().includes(filtroNome));
-            }
-            if (filtroDepto) {
-                membrosFiltrados = membrosFiltrados.filter(m =>
-                    m.departamentos && m.departamentos.some(d => d.includes(filtroDepto))
-                );
-            }
-            if (filtroAniv === 'sim') {
-                membrosFiltrados = membrosFiltrados.filter(m => ehAniversarianteDoMes(m.nascimento));
-            }
-            if (filtroRhema !== '') {
-                membrosFiltrados = membrosFiltrados.filter(m => String(m.fez_rhema) === filtroRhema);
-            }
-            if (filtroEscolaMinistros !== '') {
-                membrosFiltrados = membrosFiltrados.filter(m => String(m.escola_ministros) === filtroEscolaMinistros);
-            }
-            
-            container.innerHTML = `
-                <div style="margin-bottom:15px; font-weight:600; color:var(--primary);">
-                    Mostrando ${membrosFiltrados.length} de ${estado.membros.length} membros
-                    ${filtroAniv === 'sim' ? ' — Aniversariantes do mês' : ''}
-                </div>
-                <div class="table-responsive">
-                    <table class="table" style="width:100%; border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:var(--bg-main); text-align:left;">
-                                <th style="padding:15px;">Nome</th>
-                                <th style="padding:15px;">Idade / Aniversário</th>
-                                <th style="padding:15px;">Telefone</th>
-                                <th style="padding:15px;">Departamentos</th>
-                                <th style="padding:15px;">Rhema / Ministros</th>
-                                <th style="padding:15px;">Ações</th>
+    if (!dataNasc) return '';
+    const [y, m, d] = dataNasc.split('-').map(Number);
+    const nasc = new Date(y, m - 1, d);
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - nasc.getFullYear();
+    const monthDiff = hoje.getMonth() - nasc.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && hoje.getDate() < nasc.getDate())) idade--;
+    return idade;
+}
+function ehAniversarianteDoMes(dataNasc) {
+    if (!dataNasc) return false;
+    const [y, m, d] = dataNasc.split('-').map(Number);
+    const nasc = new Date(y, m - 1, d);
+    const hoje = new Date();
+    return hoje.getMonth() === nasc.getMonth();
+}
+function renderMembros() {
+    const container = document.getElementById('membros-table-container');
+    if (!container) return;
+    // Aplicar filtros
+    let membrosFiltrados = [...estado.membros];
+    const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
+    const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
+    const filtroAniv = document.getElementById('filtro-aniversario')?.value || '';
+    const filtroRhema = document.getElementById('filtro-rhema')?.value;
+    const filtroEscolaMinistros = document.getElementById('filtro-escola-ministros')?.value;
+    if (filtroNome) {
+        membrosFiltrados = membrosFiltrados.filter(m => m.nome.toLowerCase().includes(filtroNome));
+    }
+    if (filtroDepto) {
+        membrosFiltrados = membrosFiltrados.filter(m =>
+            m.departamentos && m.departamentos.some(d => d.includes(filtroDepto))
+        );
+    }
+    if (filtroAniv === 'sim') {
+        membrosFiltrados = membrosFiltrados.filter(m => ehAniversarianteDoMes(m.nascimento));
+    }
+    if (filtroRhema !== '') {
+        membrosFiltrados = membrosFiltrados.filter(m => String(m.fez_rhema) === filtroRhema);
+    }
+    if (filtroEscolaMinistros !== '') {
+        membrosFiltrados = membrosFiltrados.filter(m => String(m.escola_ministros) === filtroEscolaMinistros);
+    }
+    container.innerHTML = `
+        <div style="margin-bottom:15px; font-weight:600; color:var(--primary);">
+            Mostrando ${membrosFiltrados.length} de ${estado.membros.length} membros
+            ${filtroAniv === 'sim' ? ' — Aniversariantes do mês' : ''}
+        </div>
+        <div class="table-responsive">
+            <table class="table" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:var(--bg-main); text-align:left;">
+                        <th style="padding:15px;">Nome</th>
+                        <th style="padding:15px;">Idade / Aniversário</th>
+                        <th style="padding:15px;">Telefone</th>
+                        <th style="padding:15px;">Departamentos</th>
+                        <th style="padding:15px;">Rhema / Ministros</th>
+                        <th style="padding:15px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${membrosFiltrados.map(m => {
+                        const idade = calcularIdade(m.nascimento);
+                        const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
+                        const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' Festa' : '';
+                        let birthDisplay = '-';
+                        if (m.nascimento) {
+                            const [y, month, day] = m.nascimento.split('-').map(Number);
+                            const nasc = new Date(y, month - 1, day);
+                            birthDisplay = nasc.toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'});
+                        }
+                        return `
+                            <tr style="border-bottom:1px solid var(--border-color); ${ehAniversarianteDoMes(m.nascimento) ? 'background:rgba(39,174,96,0.1);' : ''}">
+                                <td style="padding:15px;">${m.nome} ${iconAniv}</td>
+                                <td style="padding:15px; ${anivStyle}">
+                                    ${birthDisplay}
+                                    ${idade ? ` (${idade} anos)` : ''}
+                                </td>
+                                <td style="padding:15px;">${m.telefone || '-'}</td>
+                                <td style="padding:15px; font-size:0.9rem;">
+                                    ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
+                                </td>
+                                <td style="padding:15px;">
+                                    ${m.fez_rhema ? 'Rhema' : ''}
+                                    ${m.escola_ministros ? 'Ministros' : ''}
+                                    ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
+                                </td>
+                                <td style="padding:15px;">
+                                    <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro(${m.id})">
+                                        Editar
+                                    </button>
+                                    <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro(${m.id})">
+                                        Excluir
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            ${membrosFiltrados.map(m => {
-                                const idade = calcularIdade(m.nascimento);
-                                const anivStyle = ehAniversarianteDoMes(m.nascimento) ? 'color:var(--success); font-weight:bold;' : '';
-                                const iconAniv = ehAniversarianteDoMes(m.nascimento) ? ' 🎂' : '';
-                                let birthDisplay = '-';
-                                if (m.nascimento) {
-                                    const [y, month, day] = m.nascimento.split('-').map(Number);
-                                    const nasc = new Date(y, month - 1, day);
-                                    birthDisplay = nasc.toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'});
-                                }
-                                return `
-                                    <tr style="border-bottom:1px solid var(--border-color); ${ehAniversarianteDoMes(m.nascimento) ? 'background:rgba(39,174,96,0.1);' : ''}">
-                                        <td style="padding:15px;">${m.nome} ${iconAniv}</td>
-                                        <td style="padding:15px; ${anivStyle}">
-                                            ${birthDisplay}
-                                            ${idade ? ` (${idade} anos)` : ''}
-                                        </td>
-                                        <td style="padding:15px;">${m.telefone || '-'}</td>
-                                        <td style="padding:15px; font-size:0.9rem;">
-                                            ${m.departamentos && m.departamentos.length > 0 ? m.departamentos.join(', ') : '<em style="color:var(--gray)">Sem departamento</em>'}
-                                        </td>
-                                        <td style="padding:15px;">
-                                            ${m.fez_rhema ? '✅ Rhema' : ''}
-                                            ${m.escola_ministros ? '✅ Ministros' : ''}
-                                            ${!m.fez_rhema && !m.escola_ministros ? '-' : ''}
-                                        </td>
-                                        <td style="padding:15px;">
-                                            <button class="btn" style="color:var(--primary); background:none; border:none; margin-right:10px;" onclick="editarMembro(${m.id})">
-                                                Editar
-                                            </button>
-                                            <button class="btn" style="color:var(--danger); background:none; border:none;" onclick="deletarMembro(${m.id})">
-                                                Excluir
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.oninput = el.onchange = () => renderMembros();
-            });
-        }
-        
-        // ============================================
-        // 9. FUNÇÕES AUXILIARES E EVENTOS
-        // ============================================
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    // Adicionar eventos aos filtros (debounce simples)
+    ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.oninput = el.onchange = () => renderMembros();
+    });
+}
+        // --- 6. FUNÇÕES AUXILIARES E EVENTOS ---
         function cacheDOM() {
+            // Formulários
             const formCulto = document.getElementById('culto-form');
             if(formCulto) formCulto.addEventListener('submit', salvarCulto);
             const formMembro = document.getElementById('form-membro');
             if(formMembro) formMembro.addEventListener('submit', salvarMembro);
-            
+            // Soma automática
             ['homens', 'mulheres', 'criancas'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.addEventListener('input', calcularTotal);
             });
-            
+            // Data de hoje
             const dateInput = document.getElementById('data-culto');
             if(dateInput) dateInput.valueAsDate = new Date();
         }
-        
         function bindEvents() {
+            // Navegação por Tabs
             document.querySelectorAll('.nav-menu a').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    
+                    // UI de Navegação
                     document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
                     link.classList.add('active');
                   
+                    // UI de Conteúdo
                     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     const targetId = link.getAttribute('href').substring(1);
                     document.getElementById(targetId).classList.add('active');
                   
+                    // Atualiza título
                     document.getElementById('current-title').innerText = link.innerText.split(" ")[0];
-                    
+                    // Fecha sidebar no mobile
                     if(window.innerWidth < 992) {
                         document.getElementById('sidebar').classList.remove('active');
                     }
                   
+                    // Re-renderiza gráficos ao voltar pro dashboard
                     if(targetId === 'dashboard') renderCharts();
                 });
             });
-            
+            // Mobile toggle
             document.getElementById('menu-toggle').addEventListener('click', () => {
                 document.getElementById('sidebar').classList.toggle('active');
             });
         }
-        
         function calcularTotal() {
             const h = parseInt(document.getElementById('homens').value) || 0;
             const m = parseInt(document.getElementById('mulheres').value) || 0;
             const c = parseInt(document.getElementById('criancas').value) || 0;
             document.getElementById('total-presentes').value = h + m + c;
         }
-        
         function updateBadges() {
             document.getElementById('dashboard-badge').innerText = estado.cultos.length;
             document.getElementById('historico-badge').innerText = estado.cultos.length;
         }
       
-        // ============================================
-        // 10. SETTINGS FUNCTIONS
-        // ============================================
+        // --- Settings Functions ---
         window.toggleDarkMode = (isDark) => {
             const newTheme = isDark ? 'dark' : 'light';
             document.body.setAttribute('data-theme', newTheme);
             estado.theme = newTheme;
             localStorage.setItem('app-theme', newTheme);
-            if(estado.charts.growth) renderCharts();
+            if(estado.charts.growth) renderCharts(); // Atualiza gráficos para novo tema
         };
-        
         window.exportData = () => {
             const dataToExport = estado.cultos.map(c => ({
                 Data: new Date(c.data_culto).toLocaleDateString('pt-BR'),
@@ -1383,21 +1211,16 @@
           
             mostrarToast('Dados exportados para CSV!', 'success');
         };
-        
         window.logout = () => {
             if (confirm('Deseja sair do sistema?')) {
                 mostrarToast('Saindo...', 'info');
                 setTimeout(() => window.location.reload(), 500);
             }
         };
-        
-        // ============================================
-        // 11. MODALS AND TOAST
-        // ============================================
+        // --- Modals and Toast ---
         window.openModalMembro = () => {
             document.getElementById('modal-membro').style.display='flex';
         };
-        
         window.mostrarToast = (msg, tipo) => {
             const t = document.createElement('div');
             t.className = `toast toast-${tipo}`;
@@ -1405,14 +1228,15 @@
             document.getElementById('toast-container').appendChild(t);
             setTimeout(() => t.remove(), 4000);
         };
-        
-        // Máscara de telefone
-        document.getElementById('membro-telefone')?.addEventListener('input', function (e) {
-            let v = e.target.value.replace(/\D/g, '');
-            v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
-            v = v.replace(/(\d)(\d{4})$/, '$1-$2');
-            e.target.value = v;
-        });
+// Máscara de telefone
+document.getElementById('membro-telefone')?.addEventListener('input', function (e) {
+    let v = e.target.value.replace(/\D/g, '');
+    v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+    v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+    e.target.value = v;
+});
     </script>
 </body>
 </html>
+
+
