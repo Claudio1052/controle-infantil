@@ -142,7 +142,7 @@
             margin-bottom: 20px;
             color: var(--primary-dark);
         }
-   
+  
         /* Cards Dashboard */
         .dashboard-grid {
             display: grid;
@@ -179,7 +179,7 @@
             flex-direction: column;
             justify-content: center;
         }
-   
+  
         /* Forms */
         .form-grid {
             display: grid;
@@ -273,7 +273,7 @@
             margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-   
+  
         /* Toast */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2100; }
         .toast {
@@ -310,7 +310,7 @@
     <div class="wrapper">
         <nav class="sidebar" id="sidebar">
             <div class="brand"><i class="fas fa-church"></i> VerboApp</div>
-       
+      
             <ul class="nav-menu">
                 <li><a href="#dashboard" class="active" id="dashboard-tab"><i class="fas fa-chart-line"></i> Dashboard <span class="badge" id="dashboard-badge">0</span></a></li>
                 <li><a href="#registro" id="registro-tab"><i class="fas fa-plus-circle"></i> Novo Culto</a></li>
@@ -319,7 +319,7 @@
                 <li><a href="#membros" id="membros-tab"><i class="fas fa-address-book"></i> Membros</a></li>
                 <li><a href="#configuracoes" id="configuracoes-tab"><i class="fas fa-cog"></i> Configurações</a></li>
             </ul>
-       
+      
             <div style="margin-top: 50px;">
                 <button class="btn btn-secondary" style="width:100%;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </div>
@@ -339,7 +339,7 @@
             <div id="dashboard" class="tab-content active">
                 <div class="dashboard-grid" id="dashboard-cards">
                     </div>
-           
+          
                 <div class="chart-grid">
                     <div class="section">
                         <h3 class="section-title">Tendência de Público</h3>
@@ -372,7 +372,7 @@
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-plus-circle"></i> Registrar Novo Culto</h3>
                     <form id="culto-form">
-                   
+                  
                         <h4 style="margin-top:20px; margin-bottom:10px; color:var(--primary);">Informações Básicas</h4>
                         <div class="form-grid">
                             <div class="input-group">
@@ -402,13 +402,13 @@
                                 </select>
                             </div>
                         </div>
-                   
+                  
                         <div class="form-grid">
                             <div class="input-group"><label for="hora-inicio">Início</label><input type="time" id="hora-inicio" class="input-control" value="19:30" required></div>
                             <div class="input-group"><label for="hora-termino">Término</label><input type="time" id="hora-termino" class="input-control" value="21:30" required></div>
                             <div class="input-group"><label for="tempo-ministerio">Duração Palavra (min)</label><input type="number" id="tempo-ministerio" class="input-control" value="60"></div>
                         </div>
-                   
+                  
                         <h4 style="margin-top:30px; margin-bottom:10px; color:var(--primary);">Contagem de Pessoas</h4>
                         <div class="form-grid">
                             <div class="input-group"><label for="homens">Homens</label><input type="number" id="homens" class="input-control" value="0"></div>
@@ -421,7 +421,7 @@
                             <div class="input-group"><label for="ministro">Ministro da Palavra</label><input type="text" id="ministro" class="input-control" required></div>
                             <div class="input-group"><label for="dirigente">Dirigente do Culto</label><input type="text" id="dirigente" class="input-control"></div>
                         </div>
-                   
+                  
                         <div class="form-grid">
                             <div class="input-group"><label for="diaconato">Diaconato (Equipe)</label><select id="diaconato" class="input-control" multiple></select></div>
                             <div class="input-group"><label for="infantil">Infantil (Equipe)</label><select id="infantil" class="input-control" multiple></select></div>
@@ -438,12 +438,12 @@
                             <div class="input-group"><label for="livraria">Livraria (Equipe)</label><select id="livraria" class="input-control" multiple></select></div>
                             <div class="input-group"><label for="ministros">Ministros (Equipe)</label><select id="ministros" class="input-control" multiple></select></div>
                         </div>
-                   
+                  
                         <div class="input-group">
                             <label for="observacoes">Observações</label>
                             <textarea id="observacoes" class="input-control" rows="3" placeholder="Informações adicionais, ocorrências..."></textarea>
                         </div>
-                   
+                  
                         <div style="margin-top:30px; display:flex; gap:15px;">
                             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Registro</button>
                             <button type="button" class="btn btn-secondary" onclick="document.getElementById('culto-form').reset()"><i class="fas fa-redo"></i> Limpar</button>
@@ -451,7 +451,7 @@
                     </form>
                 </div>
             </div>
-       
+      
             <div id="historico" class="tab-content">
                 <div class="section">
                     <h3 class="section-title"><i class="fas fa-history"></i> Histórico Completo</h3>
@@ -482,7 +482,7 @@
             <div id="membros" class="tab-content">
     <div class="section">
         <h3 class="section-title">Gestão de Membros</h3>
-    
+   
         <!-- Filtros -->
         <div style="margin-bottom: 25px; background: var(--bg-main); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow);">
             <h4 style="margin-bottom: 15px; color: var(--primary);">Filtros</h4>
@@ -541,7 +541,7 @@
             <div id="configuracoes" class="tab-content">
                 <div class="section" style="max-width: 600px; margin: 0 auto;">
                     <h3 class="section-title"><i class="fas fa-cog"></i> Configurações do Sistema</h3>
-               
+              
                     <div class="setting-item">
                         <div class="setting-info">
                             <h4>Modo Escuro (Dark Mode)</h4>
@@ -559,7 +559,7 @@
                         </div>
                         <button class="btn btn-secondary" onclick="exportData()"><i class="fas fa-download"></i> Exportar</button>
                     </div>
-               
+              
                     <div class="setting-item" style="border-bottom: none;">
                         <div class="setting-info">
                             <h4 style="color: var(--danger);">Resetar Dados</h4>
@@ -625,7 +625,6 @@
                      <option value="Concelheiros">Concelheiros</option>
                      <option value="Livraria">Livraria</option>
                      <option value="Ministros">Ministros</option>
- 
                 </select>
             </div>
             <h4 style="margin-top:30px; margin-bottom:10px; color:var(--primary);">Endereço</h4>
@@ -708,16 +707,11 @@
     </div>
 </div>
     <div id="toast-container"></div>
-    <script>
-        // --- 1. CONFIGURAÇÃO NEON ---
-        const NEON_URL = 'https://ep-polished-cherry-ad6mnvj4.apirest.c-2.us-east-1.aws.neon.tech/neondb/rest/v1';
-        const NEON_API_KEY = 'napi_11w1wmjiiwvqu84jbebjyk4wpm0z5oc5x6de768iiyayc70vvoh170qyl8fq3yoi';
-        const NEON_HEADERS = {
-            'apikey': NEON_API_KEY,
-            'Authorization': `Bearer ${NEON_API_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-        };
+    <script type="module">
+        import { neon } from 'https://unpkg.com/@neondatabase/serverless@latest';
+
+        const connectionString = 'postgresql://neondb_owner:npg_NJlZav8I3Vrz@ep-polished-cherry-ad6mnvj4-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require';
+        const sql = neon(connectionString);
         // --- 2. ESTADO GLOBAL ---
         let estado = {
             cultos: [],
@@ -726,42 +720,17 @@
             charts: {},
             theme: localStorage.getItem('app-theme') || 'light'
         };
-        // --- 3. FUNÇÕES DE API NEON ---
-        async function neonFetch(endpoint, options = {}) {
-            try {
-                const url = `${NEON_URL}/${endpoint}`;
-                const response = await fetch(url, {
-                    ...options,
-                    headers: { ...NEON_HEADERS, ...options.headers }
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                
-                if (options.method === 'DELETE' || response.status === 204) {
-                    return null;
-                }
-                
-                const text = await response.text();
-                return text ? JSON.parse(text) : null;
-            } catch (error) {
-                console.error('Neon API Error:', error);
-                throw error;
-            }
-        }
         // --- 4. INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', async () => {
             document.body.setAttribute('data-theme', estado.theme);
             document.getElementById('theme-toggle').checked = estado.theme === 'dark';
-       
+      
             cacheDOM();
             bindEvents();
-       
+      
             await checkConnection();
             await carregarDados();
-       
+      
             document.getElementById('loading-overlay').style.display = 'none';
         });
         // --- 5. FUNÇÕES DE CONEXÃO E DADOS ---
@@ -770,11 +739,11 @@
             statusEl.classList.remove('status-error');
             statusEl.classList.add('status-ok');
             statusEl.innerHTML = '<i class="fas fa-sync fa-spin"></i> Testando Conexão...';
-       
+      
             try {
                 // Tenta fazer uma consulta simples
-                await neonFetch('cultos?limit=1');
-           
+                await sql`SELECT * FROM cultos LIMIT 1`;
+          
                 statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Neon Conectado';
                 statusEl.classList.remove('status-error');
                 statusEl.classList.add('status-ok');
@@ -788,22 +757,22 @@
         }
         async function carregarDados() {
             document.getElementById('loading-text').innerText = "Carregando dados...";
-       
+      
             try {
                 // Carrega dados em paralelo
                 const [cultosData, escalasData, membrosData] = await Promise.all([
-                    neonFetch('cultos?order=data_culto.desc'),
-                    neonFetch('escalas'),
-                    neonFetch('membros?order=nome.asc')
+                    sql`SELECT * FROM cultos ORDER BY data_culto DESC`,
+                    sql`SELECT * FROM escalas ORDER BY data_escala DESC`,
+                    sql`SELECT * FROM membros ORDER BY nome ASC`
                 ]);
-                
+               
                 estado.cultos = cultosData || [];
                 estado.escalas = escalasData || [];
                 estado.membros = membrosData || [];
-                
+               
                 populateDepartamentosSelects();
                 atualizarUI();
-           
+          
             } catch (err) {
                 console.error("Erro ao carregar dados:", err);
                 mostrarToast('Erro ao carregar dados do servidor.', 'error');
@@ -813,7 +782,7 @@
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Salvando Culto...";
-       
+      
             const novoCulto = {
                 data_culto: document.getElementById('data-culto').value,
                 dia_semana: document.getElementById('dia-semana').value,
@@ -830,11 +799,9 @@
             };
             try {
                 // 1. Salvar Culto
-                const culto = await neonFetch('cultos', {
-                    method: 'POST',
-                    body: JSON.stringify(novoCulto)
-                });
-                
+                const cultoResult = await sql`INSERT INTO cultos ${sql(novoCulto)} RETURNING *`;
+                const culto = cultoResult[0];
+               
                 // 2. Salvar Escalas
                 const escalasInputs = [
                     { dept: 'Diaconato', id: 'diaconato' },
@@ -848,7 +815,7 @@
                     { dept: 'Livraria', id: 'livraria' },
                     { dept: 'Ministros', id: 'ministros' }
                 ];
-                
+               
                 const escalasParaSalvar = escalasInputs
                     .map(s => ({
                         dept: s.dept,
@@ -856,23 +823,20 @@
                     }))
                     .filter(s => s.val && s.val.trim() !== "")
                     .map(s => ({
-                        culto_id: culto[0].id,
+                        culto_id: culto.id,
                         data_escala: novoCulto.data_culto,
                         departamento: s.dept,
                         nomes: s.val
                     }));
-                
+               
                 if (escalasParaSalvar.length > 0) {
-                    await neonFetch('escalas', {
-                        method: 'POST',
-                        body: JSON.stringify(escalasParaSalvar)
-                    });
+                    await sql`INSERT INTO escalas ${sql(escalasParaSalvar)}`;
                 }
-                
+               
                 mostrarToast('Culto registrado com sucesso!', 'success');
                 document.getElementById('culto-form').reset();
                 document.getElementById('total-presentes').value = 0;
-           
+          
                 await carregarDados();
                 document.getElementById('dashboard-tab').click();
             } catch (error) {
@@ -882,18 +846,18 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-   
+  
         async function deletarCulto(id) {
             if(!confirm('Tem certeza que deseja excluir este registro?')) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Excluindo registro...";
-       
+      
             try {
                 // Primeiro deleta as escalas associadas
-                await neonFetch(`escalas?culto_id=eq.${id}`, { method: 'DELETE' });
+                await sql`DELETE FROM escalas WHERE culto_id = ${id}`;
                 // Depois deleta o culto
-                await neonFetch(`cultos?id=eq.${id}`, { method: 'DELETE' });
-           
+                await sql`DELETE FROM cultos WHERE id = ${id}`;
+          
                 mostrarToast('Culto removido com sucesso.', 'success');
                 await carregarDados();
             } catch (err) {
@@ -906,7 +870,7 @@
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Salvando membro...";
-            
+           
             const id = document.getElementById('membro-id').value;
             const nome = document.getElementById('membro-nome').value.trim();
             const telefone = document.getElementById('membro-telefone').value.trim();
@@ -922,7 +886,7 @@
             const bairro = document.getElementById('membro-bairro').value.trim() || null;
             const localidade = document.getElementById('membro-localidade').value.trim() || null;
             const uf = document.getElementById('membro-uf').value.trim() || null;
-            
+           
             const membroData = {
                 nome,
                 telefone,
@@ -939,22 +903,16 @@
                 localidade,
                 uf
             };
-            
+           
             try {
                 if (id) {
-                    await neonFetch(`membros?id=eq.${id}`, {
-                        method: 'PATCH',
-                        body: JSON.stringify(membroData)
-                    });
+                    await sql`UPDATE membros SET ${sql(membroData)} WHERE id = ${id}`;
                     mostrarToast('Membro atualizado com sucesso!', 'success');
                 } else {
-                    await neonFetch('membros', {
-                        method: 'POST',
-                        body: JSON.stringify(membroData)
-                    });
+                    await sql`INSERT INTO membros ${sql(membroData)}`;
                     mostrarToast('Membro cadastrado com sucesso!', 'success');
                 }
-                
+               
                 fecharModalMembro();
                 await carregarDados();
             } catch (err) {
@@ -963,17 +921,17 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-        
+       
         function fecharModalMembro() {
             document.getElementById('modal-membro').style.display = 'none';
             document.getElementById('form-membro').reset();
             document.getElementById('membro-id').value = '';
         }
-        
+       
         function editarMembro(id) {
             const membro = estado.membros.find(m => m.id === id);
             if (!membro) return;
-            
+           
             document.getElementById('membro-id').value = membro.id;
             document.getElementById('membro-nome').value = membro.nome;
             document.getElementById('membro-telefone').value = membro.telefone || '';
@@ -988,22 +946,22 @@
             document.getElementById('membro-bairro').value = membro.bairro || '';
             document.getElementById('membro-localidade').value = membro.localidade || '';
             document.getElementById('membro-uf').value = membro.uf || '';
-            
+           
             const select = document.getElementById('membro-departamentos');
             Array.from(select.options).forEach(opt => {
                 opt.selected = membro.departamentos && membro.departamentos.includes(opt.value);
             });
-            
+           
             document.getElementById('modal-membro').style.display = 'flex';
         }
-        
+       
         async function deletarMembro(id) {
             if(!confirm('Excluir membro? Esta ação é permanente.')) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Excluindo membro...";
-       
+      
             try {
-                await neonFetch(`membros?id=eq.${id}`, { method: 'DELETE' });
+                await sql`DELETE FROM membros WHERE id = ${id}`;
                 mostrarToast('Membro excluído', 'success');
                 await carregarDados();
             } catch(err) {
@@ -1020,13 +978,13 @@
             renderMembros();
             updateBadges();
         }
-        
+       
         function renderDashboard() {
             const totalCultos = estado.cultos.length;
             const totalPublico = estado.cultos.reduce((acc, c) => acc + (c.homens + c.mulheres + c.criancas), 0);
             const mediaPublico = totalCultos > 0 ? Math.round(totalPublico / totalCultos) : 0;
             const totalMembros = estado.membros.length;
-       
+      
             document.getElementById('dashboard-cards').innerHTML = `
                 <div class="card card-info">
                     <div class="card-header">
@@ -1053,11 +1011,11 @@
                     <div class="card-subvalue">${estado.membros.filter(m => m.ativo).length} ativos</div>
                 </div>
             `;
-            
+           
             renderCharts();
             renderTimeline();
         }
-        
+       
         function renderTimeline() {
             const tbody = document.getElementById('timeline-events');
             tbody.innerHTML = estado.cultos.slice(0, 5).map(c => `
@@ -1069,12 +1027,12 @@
                 </tr>
             `).join('');
         }
-        
+       
         function renderCharts() {
             const ultimosCultos = [...estado.cultos].slice(0, 10).reverse();
             const labels = ultimosCultos.map(c => new Date(c.data_culto).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
             const dataTotal = ultimosCultos.map(c => c.homens + c.mulheres + c.criancas);
-            
+           
             const ctxGrowth = document.getElementById('growthChart').getContext('2d');
             if(estado.charts.growth) estado.charts.growth.destroy();
             estado.charts.growth = new Chart(ctxGrowth, {
@@ -1092,11 +1050,11 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-            
+           
             const totalH = estado.cultos.reduce((a,c)=>a+c.homens,0);
             const totalM = estado.cultos.reduce((a,c)=>a+c.mulheres,0);
             const totalC = estado.cultos.reduce((a,c)=>a+c.criancas,0);
-       
+      
             const ctxDemo = document.getElementById('demographicsChart').getContext('2d');
             if(estado.charts.demo) estado.charts.demo.destroy();
             estado.charts.demo = new Chart(ctxDemo, {
@@ -1113,11 +1071,11 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
         }
-        
+       
         function renderHistorico() {
             const container = document.getElementById('historico-table-container');
             if(!container) return;
-            
+           
             container.innerHTML = `
                 <div class="table-responsive">
                     <table class="table" style="width:100%; border-collapse:collapse;">
@@ -1147,15 +1105,15 @@
                 </div>
             `;
         }
-        
+       
         function renderEscalas() {
             const container = document.getElementById('lista-escalas');
             if(!container) return;
-       
+      
             container.innerHTML = '';
             const filtroData = document.getElementById('filtro-data-escala')?.value || '';
             const escalasFiltradas = filtroData ? estado.escalas.filter(e => e.data_escala === filtroData) : estado.escalas;
-            
+           
             const groups = {};
             escalasFiltradas.forEach(e => {
               const date = e.data_escala;
@@ -1163,9 +1121,9 @@
               if (!groups[date]) groups[date] = { escalas: [] };
               groups[date].escalas.push(e);
             });
-            
+           
             const sortedDates = Object.keys(groups).sort((a,b) => new Date(b) - new Date(a)).slice(0, filtroData ? undefined : 6);
-            
+           
             sortedDates.forEach(date => {
               const g = groups[date];
               const card = document.createElement('div');
@@ -1185,7 +1143,7 @@
               container.appendChild(card);
             });
         }
-   
+  
         function calcularIdade(dataNasc) {
             if (!dataNasc) return '';
             const [y, m, d] = dataNasc.split('-').map(Number);
@@ -1196,7 +1154,7 @@
             if (monthDiff < 0 || (monthDiff === 0 && hoje.getDate() < nasc.getDate())) idade--;
             return idade;
         }
-        
+       
         function ehAniversarianteDoMes(dataNasc) {
             if (!dataNasc) return false;
             const [y, m, d] = dataNasc.split('-').map(Number);
@@ -1204,7 +1162,7 @@
             const hoje = new Date();
             return hoje.getMonth() === nasc.getMonth();
         }
-        
+       
         function formatarEndereco(m) {
             let endereco = '';
             if (m.logradouro) endereco += m.logradouro;
@@ -1216,18 +1174,18 @@
             if (m.cep) endereco += ` (CEP: ${m.cep})`;
             return endereco.trim() || '-';
         }
-        
+       
         function renderMembros() {
             const container = document.getElementById('membros-table-container');
             if (!container) return;
-            
+           
             let membrosFiltrados = [...estado.membros];
             const filtroNome = document.getElementById('filtro-nome')?.value.toLowerCase() || '';
             const filtroDepto = document.getElementById('filtro-departamento')?.value || '';
             const filtroAniv = document.getElementById('filtro-aniversario')?.value || '';
             const filtroRhema = document.getElementById('filtro-rhema')?.value;
             const filtroEscolaMinistros = document.getElementById('filtro-escola-ministros')?.value;
-            
+           
             if (filtroNome) {
                 membrosFiltrados = membrosFiltrados.filter(m => m.nome.toLowerCase().includes(filtroNome));
             }
@@ -1245,7 +1203,7 @@
             if (filtroEscolaMinistros !== '') {
                 membrosFiltrados = membrosFiltrados.filter(m => String(m.escola_ministros) === filtroEscolaMinistros);
             }
-            
+           
             container.innerHTML = `
                 <div style="margin-bottom:15px; font-weight:600; color:var(--primary);">
                     Mostrando ${membrosFiltrados.length} de ${estado.membros.length} membros
@@ -1310,7 +1268,7 @@
                     </table>
                 </div>
             `;
-            
+           
             ['filtro-nome', 'filtro-departamento', 'filtro-aniversario', 'filtro-rhema', 'filtro-escola-ministros'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.oninput = el.onchange = () => renderMembros();
@@ -1324,56 +1282,56 @@
             if(formMembro) formMembro.addEventListener('submit', salvarMembro);
             const formEscala = document.getElementById('form-escala');
             if(formEscala) formEscala.addEventListener('submit', salvarEscala);
-            
+           
             ['homens', 'mulheres', 'criancas'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.addEventListener('input', calcularTotal);
             });
-            
+           
             const dateInput = document.getElementById('data-culto');
             if(dateInput) dateInput.valueAsDate = new Date();
             const dateEscala = document.getElementById('data-escala');
             if(dateEscala) dateEscala.valueAsDate = new Date();
         }
-        
+       
         function bindEvents() {
             document.querySelectorAll('.nav-menu a').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
                     link.classList.add('active');
-               
+              
                     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     const targetId = link.getAttribute('href').substring(1);
                     document.getElementById(targetId).classList.add('active');
-               
+              
                     document.getElementById('current-title').innerText = link.innerText.split(" ")[0];
-                    
+                   
                     if(window.innerWidth < 992) {
                         document.getElementById('sidebar').classList.remove('active');
                     }
-               
+              
                     if(targetId === 'dashboard') renderCharts();
                 });
             });
-            
+           
             document.getElementById('menu-toggle').addEventListener('click', () => {
                 document.getElementById('sidebar').classList.toggle('active');
             });
         }
-        
+       
         function calcularTotal() {
             const h = parseInt(document.getElementById('homens').value) || 0;
             const m = parseInt(document.getElementById('mulheres').value) || 0;
             const c = parseInt(document.getElementById('criancas').value) || 0;
             document.getElementById('total-presentes').value = h + m + c;
         }
-        
+       
         function updateBadges() {
             document.getElementById('dashboard-badge').innerText = estado.cultos.length;
             document.getElementById('historico-badge').innerText = estado.cultos.length;
         }
-        
+       
         function populateDepartamentosSelects() {
             const deptMap = {
                 diaconato: 'Diaconato',
@@ -1387,7 +1345,7 @@
                 livraria: 'Livraria',
                 ministros: 'Ministros'
             };
-            
+           
             Object.keys(deptMap).forEach(deptId => {
                 const select = document.getElementById(deptId);
                 if (!select) return;
@@ -1401,7 +1359,7 @@
                     select.appendChild(opt);
                 });
             });
-            
+           
             const escalaDeptMap = {
                 'diaconato-escala': 'Diaconato',
                 'musica-escala': 'Música',
@@ -1417,7 +1375,7 @@
                 'infantil-6-8': 'Infantil',
                 'infantil-9-12': 'Infantil'
             };
-            
+           
             Object.keys(escalaDeptMap).forEach(deptId => {
                 const select = document.getElementById(deptId);
                 if (!select) return;
@@ -1432,7 +1390,7 @@
                 });
             });
         }
-   
+  
         // --- Settings Functions ---
         window.toggleDarkMode = (isDark) => {
             const newTheme = isDark ? 'dark' : 'light';
@@ -1441,7 +1399,7 @@
             localStorage.setItem('app-theme', newTheme);
             if(estado.charts.growth) renderCharts();
         };
-        
+       
         window.exportData = () => {
             const dataToExport = estado.cultos.map(c => ({
                 Data: new Date(c.data_culto).toLocaleDateString('pt-BR'),
@@ -1454,13 +1412,13 @@
                 Dirigente: c.dirigente,
                 Observações: c.observacoes
             }));
-            
+           
             const headers = Object.keys(dataToExport[0]);
             const csv = [
                 headers.join(';'),
                 ...dataToExport.map(row => headers.map(header => row[header]).join(';'))
             ].join('\n');
-            
+           
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
@@ -1468,32 +1426,32 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-       
+      
             mostrarToast('Dados exportados para CSV!', 'success');
         };
-        
+       
         window.logout = () => {
             if (confirm('Deseja sair do sistema?')) {
                 mostrarToast('Saindo...', 'info');
                 setTimeout(() => window.location.reload(), 500);
             }
         };
-        
+       
         // --- Modals and Toast ---
         window.openModalMembro = () => {
             document.getElementById('modal-membro').style.display='flex';
         };
-        
+       
         window.openModalEscala = () => {
             document.getElementById('modal-escala').style.display='flex';
         };
-        
+       
         window.fecharModalEscala = () => {
             document.getElementById('modal-escala').style.display = 'none';
             document.getElementById('form-escala').reset();
             document.getElementById('edit-date').value = '';
         };
-        
+       
         window.mostrarToast = (msg, tipo) => {
             const t = document.createElement('div');
             t.className = `toast toast-${tipo}`;
@@ -1501,25 +1459,25 @@
             document.getElementById('toast-container').appendChild(t);
             setTimeout(() => t.remove(), 4000);
         };
-        
+       
         async function salvarEscala(e) {
             e.preventDefault();
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-text').innerText = "Salvando Escala...";
-            
+           
             const data_escala = document.getElementById('data-escala').value;
             if (!data_escala) {
                 mostrarToast('Data obrigatória', 'error');
                 document.getElementById('loading-overlay').style.display = 'none';
                 return;
             }
-            
+           
             const editDate = document.getElementById('edit-date').value;
             try {
                 if (editDate) {
-                    await neonFetch(`escalas?data_escala=eq.${editDate}`, { method: 'DELETE' });
+                    await sql`DELETE FROM escalas WHERE data_escala = ${editDate}`;
                 }
-                
+               
                 const escalasInputs = [
                     { dept: 'Diaconato', id: 'diaconato-escala' },
                     { dept: 'Música', id: 'musica-escala' },
@@ -1535,7 +1493,7 @@
                     { dept: 'Infantil 6-8', id: 'infantil-6-8' },
                     { dept: 'Infantil 9-12', id: 'infantil-9-12' }
                 ];
-                
+               
                 const escalasParaSalvar = escalasInputs
                     .map(s => ({
                         dept: s.dept,
@@ -1547,14 +1505,11 @@
                         departamento: s.dept,
                         nomes: s.val
                     }));
-                
+               
                 if (escalasParaSalvar.length > 0) {
-                    await neonFetch('escalas', {
-                        method: 'POST',
-                        body: JSON.stringify(escalasParaSalvar)
-                    });
+                    await sql`INSERT INTO escalas ${sql(escalasParaSalvar)}`;
                 }
-                
+               
                 mostrarToast('Escala salva com sucesso!', 'success');
                 document.getElementById('edit-date').value = '';
                 fecharModalEscala();
@@ -1566,17 +1521,17 @@
                 document.getElementById('loading-overlay').style.display = 'none';
             }
         }
-        
+       
         function editarEscala(date) {
             document.getElementById('modal-escala').style.display = 'flex';
             document.getElementById('data-escala').value = date;
             document.getElementById('edit-date').value = date;
-            
+           
             const selects = document.querySelectorAll('#form-escala select');
             selects.forEach(s => {
                 Array.from(s.options).forEach(o => o.selected = false);
             });
-            
+           
             const escalasDate = estado.escalas.filter(e => e.data_escala === date);
             escalasDate.forEach(e => {
                 let deptId;
@@ -1604,7 +1559,7 @@
                 }
             });
         }
-        
+       
         // Máscara de telefone
         document.getElementById('membro-telefone')?.addEventListener('input', function (e) {
             let v = e.target.value.replace(/\D/g, '');
@@ -1612,14 +1567,14 @@
             v = v.replace(/(\d)(\d{4})$/, '$1-$2');
             e.target.value = v;
         });
-        
+       
         // Máscara de CEP
         document.getElementById('membro-cep')?.addEventListener('input', function (e) {
             let v = e.target.value.replace(/\D/g, '');
             v = v.replace(/(\d{5})(\d)/, '$1-$2');
             e.target.value = v;
         });
-        
+       
         // Consulta ViaCEP
         document.getElementById('membro-cep')?.addEventListener('blur', async function (e) {
             const cep = e.target.value.replace(/\D/g, '');
