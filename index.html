@@ -2488,6 +2488,11 @@ function nav(page){
     else if(page==='notifications')  loadNotifTab('nt-all');
     else if(page==='capsules')       loadCapsules();
     else if(page==='profile')        loadProfilePage(CU?.id);
+
+    // ✅ Reavalia presença DEPOIS da transição completa de página
+    // Captura caso: messages → home (sub-aba não-chat) — a chamada antes do _navBase
+    // ainda via page-messages active e não destrackava. Agora confere com o estado real.
+    if(page !== 'messages' && typeof _presenceLeaveChat === 'function') _presenceLeaveChat();
   }, 0);
 }
 
@@ -2523,10 +2528,10 @@ let _feedEmptyRetries = 0; // guarda recursoes consecutivas de pagina vazia
 const TEST_NO_LIMITS_SUPER = false;
 
 const PLAN_LIMITS = {
-  //                    produtos  divulg/dia  story/dia  super_story/dia  super_post/dia  alcance_story
-  free:         { products: 5,  promo_day: 3,  story_day: 1, super_story_day: 0, super_post_day: 0, story_reach: 0    },
-  profissional: { products: 10, promo_day: 10, story_day: 3, super_story_day: 1, super_post_day: 1, story_reach: 1000 },
-  premium:      { products: 20, promo_day: 10, story_day: 5, super_story_day: 3, super_post_day: 3, story_reach: 1000 },
+  //                    produtos  divulg/dia  story/dia  super_story/MÊS  super_post/MÊS  alcance_story
+  free:         { products: 20,  promo_day: 3,  story_day: 1, super_story_month: 0,  super_post_month: 0,  story_reach: 0    },
+  profissional: { products: 100, promo_day: 10, story_day: 3, super_story_month: 4,  super_post_month: 4,  story_reach: 1000 },
+  premium:      { products: 200, promo_day: 20, story_day: 5, super_story_month: 10, super_post_month: 10, story_reach: 1000 },
 };
 
 function _bizGetPlan(biz) {
@@ -2582,6 +2587,8 @@ async function _bizGetStoryCredits(bizId) {
 // ── Sistema de Admin/Moderadores ────────────────────────────────────
 window._adminMods = [];
 window._adminModsLoaded = false;
+// Superadmins hardcoded — nunca dependem do banco
+const _SUPERADMINS = ['kodash','kodash1'];
 async function _loadAdminMods() {
   try {
     const { data } = await db.from('admin_settings').select('value').eq('key','moderators').maybeSingle();
@@ -2595,8 +2602,9 @@ async function _loadAdminMods() {
 }
 function _isAdmin() {
   if (!CP?.username) return false;
-  if (CP.username === 'kodash' || CP.username === 'kodash1') return true;
-  return Array.isArray(window._adminMods) && window._adminMods.includes(CP.username);
+  const u = CP.username.toLowerCase().trim();
+  if (_SUPERADMINS.includes(u)) return true;
+  return Array.isArray(window._adminMods) && window._adminMods.map(x=>x.toLowerCase().trim()).includes(u);
 }
 window._isAdmin = _isAdmin;
 
@@ -2621,29 +2629,30 @@ window._prodSuperStory = async function(bizId, itemId, itemName, itemPrice, item
   if (!biz) biz = myBusiness;
   if (!biz?.id) return showToast('Loja não encontrada', 'error');
   const plan = _bizGetPlan(biz);
-  const dayLimit = PLAN_LIMITS[plan].super_story_day;
+  const monthLimit = PLAN_LIMITS[plan].super_story_month;
 
   if (TEST_NO_LIMITS_SUPER) {
     return oaPublishPaidStory(bizId, { itemId, itemName, itemPrice, itemImgUrl, itemPriceLabel, itemDescription });
   }
 
-  // Conta super stories publicados hoje
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  // Conta super stories publicados NO MÊS ATUAL
+  const _now = new Date();
+  const firstOfMonth = new Date(_now.getFullYear(), _now.getMonth(), 1, 0, 0, 0, 0);
   const { count: ssCount } = await db.from('olha_aqui')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', CU.id)
     .eq('metadata->>type', 'business_paid')
-    .gte('created_at', today.toISOString());
+    .gte('created_at', firstOfMonth.toISOString());
   const used   = ssCount || 0;
   const credits = await _bizGetStoryCredits(bizId);
   const extras = credits.credits || 0;
 
-  // Caso 1: ainda tem limite diário do plano → publica direto
-  if (used < dayLimit) {
+  // Caso 1: ainda tem limite mensal do plano → publica direto
+  if (used < monthLimit) {
     return oaPublishPaidStory(bizId, { itemId, itemName, itemPrice, itemImgUrl, itemPriceLabel, itemDescription });
   }
 
-  // Caso 2: limite diário atingido (ou plano free) MAS tem extras → confirma uso de extra
+  // Caso 2: limite mensal atingido (ou plano free) MAS tem extras → confirma uso de extra
   if (extras > 0) {
     eaConfirm('⭐ Usar 1 dos seus '+extras+' Super Story Extra(s)?\nAtingirá seguidores + pessoas próximas (até 1000).', () => {
       oaPublishPaidStory(bizId, { itemId, itemName, itemPrice, itemImgUrl, itemPriceLabel, itemDescription });
@@ -2654,9 +2663,9 @@ window._prodSuperStory = async function(bizId, itemId, itemName, itemPrice, item
   // Caso 3: sem limite e sem extras → oferece compra avulsa
   const px = await _getAdminAddonPrice('super_story_price', 10);
   const pxFmt = px.toFixed(2).replace('.', ',');
-  const msg = dayLimit === 0
+  const msg = monthLimit === 0
     ? '⭐ Plano Gratuito não inclui Super Story Premium.\n\n💳 Comprar 1 Super Story por R$'+pxFmt+'?\nAtingirá seguidores + pessoas próximas (até 1000).'
-    : 'Limite de '+dayLimit+' Super Story(s)/dia atingido!\n\n💳 Comprar 1 Super Story Extra por R$'+pxFmt+'?';
+    : 'Limite de '+monthLimit+' Super Story(s)/mês atingido!\n\n💳 Comprar 1 Super Story Extra por R$'+pxFmt+'?';
   eaConfirm(msg, () => bizBuyAddon(bizId, 'story_extra', 1));
 };
 
@@ -2672,7 +2681,7 @@ window._prodSuperPost = async function(bizId, prodName, price, imgUrl, priceLabe
   if (!biz) biz = myBusiness;
   if (!biz?.id) return showToast('Loja não encontrada', 'error');
   const plan = _bizGetPlan(biz);
-  const dayLimit = PLAN_LIMITS[plan].super_post_day;
+  const monthLimit = PLAN_LIMITS[plan].super_post_month;
 
   const _publish = () => {
     window._divulgIsSuper = true;
@@ -2681,19 +2690,20 @@ window._prodSuperPost = async function(bizId, prodName, price, imgUrl, priceLabe
 
   if (TEST_NO_LIMITS_SUPER) return _publish();
 
-  // Conta super posts publicados hoje
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  // Conta super posts publicados NO MÊS ATUAL
+  const _now = new Date();
+  const firstOfMonth = new Date(_now.getFullYear(), _now.getMonth(), 1, 0, 0, 0, 0);
   const { count: spCount } = await db.from('posts')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', CU.id)
     .like('content', '[BIZ_SUPER:%')
-    .gte('created_at', today.toISOString());
+    .gte('created_at', firstOfMonth.toISOString());
   const used = spCount || 0;
   const credits = await _bizGetStoryCredits(bizId);
   const extras = credits.super_post_credits || 0;
 
-  // Caso 1: ainda tem limite diário → publica direto
-  if (used < dayLimit) return _publish();
+  // Caso 1: ainda tem limite mensal → publica direto
+  if (used < monthLimit) return _publish();
 
   // Caso 2: limite atingido (ou plano free) MAS tem extras → confirma e consome APÓS publicação
   if (extras > 0) {
@@ -2708,9 +2718,9 @@ window._prodSuperPost = async function(bizId, prodName, price, imgUrl, priceLabe
   // Caso 3: sem limite e sem extras → oferece compra avulsa
   const px = await _getAdminAddonPrice('super_post_price', 5);
   const pxFmt = px.toFixed(2).replace('.', ',');
-  const msg = dayLimit === 0
+  const msg = monthLimit === 0
     ? '⚡ Plano Gratuito não inclui Super Post Premium.\n\n💳 Comprar 1 Super Post por R$'+pxFmt+'?\nSeu produto será divulgado para muito mais pessoas no feed.'
-    : 'Limite de '+dayLimit+' Super Post(s)/dia atingido!\n\n💳 Comprar 1 Super Post Extra por R$'+pxFmt+'?';
+    : 'Limite de '+monthLimit+' Super Post(s)/mês atingido!\n\n💳 Comprar 1 Super Post Extra por R$'+pxFmt+'?';
   eaConfirm(msg, () => bizBuyAddon(bizId, 'super_post', 1));
 };
 
@@ -2963,34 +2973,35 @@ async function renderBizPlans(biz) {
     ? new Date(biz.plan_expires_at).toLocaleDateString('pt-BR')
     : null;
 
-  // Busca uso do dia para Super Story e Super Post (só se logado)
-  let _ssHoje = 0, _spHoje = 0;
+  // Busca uso do MÊS para Super Story e Super Post (só se logado)
+  let _ssMes = 0, _spMes = 0;
   if (CU) {
-    const _today = new Date(); _today.setHours(0,0,0,0);
+    const _now = new Date();
+    const _firstOfMonth = new Date(_now.getFullYear(), _now.getMonth(), 1, 0, 0, 0, 0);
     const [_ssRes, _spRes] = await Promise.all([
       db.from('olha_aqui')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', CU.id)
         .eq('metadata->>type', 'business_paid')
-        .gte('created_at', _today.toISOString()),
+        .gte('created_at', _firstOfMonth.toISOString()),
       db.from('posts')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', CU.id)
         .like('content', '[BIZ_SUPER:%')
-        .gte('created_at', _today.toISOString()),
+        .gte('created_at', _firstOfMonth.toISOString()),
     ]);
-    _ssHoje = _ssRes.count || 0;
-    _spHoje = _spRes.count || 0;
+    _ssMes = _ssRes.count || 0;
+    _spMes = _spRes.count || 0;
   }
-  const _ssLimPro  = PLAN_LIMITS.profissional.super_story_day;
-  const _spLimPro  = PLAN_LIMITS.profissional.super_post_day;
-  const _ssLimPrem = PLAN_LIMITS.premium.super_story_day;
-  const _spLimPrem = PLAN_LIMITS.premium.super_post_day;
+  const _ssLimPro  = PLAN_LIMITS.profissional.super_story_month;
+  const _spLimPro  = PLAN_LIMITS.profissional.super_post_month;
+  const _ssLimPrem = PLAN_LIMITS.premium.super_story_month;
+  const _spLimPrem = PLAN_LIMITS.premium.super_post_month;
 
   // Monta badge de uso com cor conforme restante
   const _useBadge = (used, limit, color) => {
     const ok = used < limit;
-    return `<span style="font-size:10px;font-weight:700;color:${ok ? color : 'var(--neon-pink)'};">${used}/${limit} hoje</span>`;
+    return `<span style="font-size:10px;font-weight:700;color:${ok ? color : 'var(--neon-pink)'};">${used}/${limit} no mês</span>`;
   };
 
   // Card do plano atual
@@ -3032,7 +3043,7 @@ async function renderBizPlans(biz) {
         <p style="font-size:24px;font-weight:700;color:var(--neon-cyan);margin:0 0 12px">R$0<span style="font-size:12px;color:var(--text-muted)">/mês</span></p>
         <ul style="list-style:none;padding:0;margin:0 0 16px;font-size:12px;color:var(--text-muted);line-height:2">
           <li>✓ 1 loja</li>
-          <li>✓ 5 Produtos / Serviços</li>
+          <li>✓ 20 Produtos / Serviços</li>
           <li>✓ 3 divulgações/dia no Feed</li>
           <li>✓ 1 Story OlhaAqui por dia</li>
           <li>✗ Super Story Premium</li>
@@ -3047,11 +3058,11 @@ async function renderBizPlans(biz) {
         <p style="font-size:18px;font-weight:700;margin:0 0 4px">💼 Profissional</p>
         <p style="font-size:24px;font-weight:700;color:#3B82F6;margin:0 0 12px">R$${_proPx}<span style="font-size:12px;color:var(--text-muted)">/mês</span></p>
         <ul style="list-style:none;padding:0;margin:0 0 16px;font-size:12px;color:var(--text-muted);line-height:2">
-          <li>✓ 10 Produtos / Serviços</li>
+          <li>✓ 100 Produtos / Serviços</li>
           <li>✓ 10 divulgações/dia no Feed</li>
           <li>✓ 3 Stories OlhaAqui por dia</li>
-          <li>✓ Super Story Premium ${current==='profissional' ? _useBadge(_ssHoje,_ssLimPro,'#F59E0B') : `<span style="color:#F59E0B">(1/dia)</span>`}</li>
-          <li>✓ Super Post Premium ${current==='profissional' ? _useBadge(_spHoje,_spLimPro,'#F59E0B') : `<span style="color:#F59E0B">(1/dia)</span>`}</li>
+          <li>✓ Super Story Premium ${current==='profissional' ? _useBadge(_ssMes,_ssLimPro,'#F59E0B') : `<span style="color:#F59E0B">(4/mês)</span>`}</li>
+          <li>✓ Super Post Premium ${current==='profissional' ? _useBadge(_spMes,_spLimPro,'#F59E0B') : `<span style="color:#F59E0B">(4/mês)</span>`}</li>
           <li>✓ Destaque na Pesquisa de Lojas e Serviços</li>
         </ul>
         ${current === 'profissional'
@@ -3069,14 +3080,14 @@ async function renderBizPlans(biz) {
         <p style="font-size:18px;font-weight:700;margin:0 0 4px">👑 Premium</p>
         <p style="font-size:24px;font-weight:700;color:#7C3AED;margin:0 0 12px">R$${_premPx}<span style="font-size:12px;color:var(--text-muted)">/mês</span></p>
         <ul style="list-style:none;padding:0;margin:0 0 16px;font-size:12px;color:var(--text-muted);line-height:2">
-          <li>✓ 20 Produtos / Serviços</li>
-          <li>✓ 10 divulgações/dia no Feed</li>
+          <li>✓ 200 Produtos / Serviços</li>
+          <li>✓ 20 divulgações/dia no Feed</li>
           <li>✓ 5 Stories OlhaAqui por dia</li>
           <li>✓ Tudo do Profissional</li>
           <li>✓ Topo do feed</li>
           <li>✓ Selo verificado ✓</li>
-          <li>✓ Super Stories Premium ${current==='premium' ? _useBadge(_ssHoje,_ssLimPrem,'#A78BFA') : `<span style="color:#A78BFA">(3/dia)</span>`}</li>
-          <li>✓ Super Posts Premium ${current==='premium' ? _useBadge(_spHoje,_spLimPrem,'#A78BFA') : `<span style="color:#A78BFA">(3/dia)</span>`}</li>
+          <li>✓ Super Stories Premium ${current==='premium' ? _useBadge(_ssMes,_ssLimPrem,'#A78BFA') : `<span style="color:#A78BFA">(10/mês)</span>`}</li>
+          <li>✓ Super Posts Premium ${current==='premium' ? _useBadge(_spMes,_spLimPrem,'#A78BFA') : `<span style="color:#A78BFA">(10/mês)</span>`}</li>
         </ul>
         ${current === 'premium'
           ? '<div style="text-align:center;padding:8px;border-radius:8px;background:rgba(124,58,237,.15);color:#7C3AED;font-size:12px">Plano atual</div>'
@@ -3666,6 +3677,16 @@ async function loadFeed(force=false){
       filteredPosts = filteredPosts.filter(p=> !_myBlocks.has(p.user_id));
     }
   }catch(e){ console.warn('Block filter:', e?.message); }
+
+  // ── Filtro de posts deletados localmente ──────────────────────────────────
+  // feed_posts_mv pode retornar posts já deletados se a MV estiver stale.
+  // Garantia client-side de que posts excluídos não reaparecem.
+  try{
+    const _deletedSet = (typeof _getDeletedPostIds === 'function') ? _getDeletedPostIds() : new Set();
+    if(_deletedSet.size > 0){
+      filteredPosts = filteredPosts.filter(p=> !_deletedSet.has(String(p.id)));
+    }
+  }catch(e){ console.warn('Deleted-posts filter:', e?.message); }
 
   // ── Posts de comunidade aparecem para todos no feed geral ───────────────────
   // Membros vêem com prioridade (tier 3), não-membros vêem como tendência (tier 5)
@@ -6760,6 +6781,33 @@ async function createPost(){
     window.scrollTo({top:0, behavior:'smooth'});
     document.documentElement.scrollTo({top:0, behavior:'smooth'});
     await loadFeed(true); updateLevel();
+
+    // ✅ ZERO-EGRESS GUARANTEE: se o trigger fan_out_post_trigger não inseriu
+    // a linha do AUTOR em user_feed (só insere para seguidores), o post não
+    // aparece via fan-out e a MV pode estar stale. Renderiza direto no DOM
+    // usando os dados já em memória — sem queries extras.
+    if(postData?.id && !document.getElementById('post-'+postData.id)){
+      try {
+        // Anexa profiles ao postData (INSERT...select() não traz JOIN)
+        postData.profiles = postData.profiles || {
+          id:           CU.id,
+          username:     CP?.username     || '',
+          full_name:    CP?.full_name    || CP?.username || '',
+          avatar_url:   CP?.avatar_url   || '',
+          avatar_type:  CP?.avatar_type  || null,
+          retro_icon:   CP?.retro_icon   || null,
+          avatarFrame:  CP?.avatarFrame  || null
+        };
+        const html = renderPost(postData, {}, '');
+        const feedEl = document.getElementById('feed');
+        if(html && feedEl){
+          feedEl.insertAdjacentHTML('afterbegin', html);
+          cachedPostIds.add(postData.id);
+          if(!window._postCache) window._postCache = {};
+          window._postCache[postData.id] = postData;
+        }
+      } catch(e){ console.warn('[createPost] insta-render falhou:', e?.message); }
+    }
     // _feedMvAvailable permanece false até o pg_cron atualizar a MV (5min)
     // Garante que o post recém publicado aparece via SEL_RAW no próximo scroll
   } finally {
@@ -6791,6 +6839,32 @@ function _euConfirm(msg, icon){
     document.getElementById('_eu_conf_yes').onclick=()=>{ ov.remove(); resolve(true);  };
   });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// LOCAL DELETED POSTS — evita que posts excluídos reapareçam pela
+// view materializada `feed_posts_mv` (que pode estar stale).
+// ═══════════════════════════════════════════════════════════════
+function _getDeletedPostIds(){
+  try{
+    const raw = localStorage.getItem('ea_deleted_posts');
+    if(!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr : []);
+  }catch(e){ return new Set(); }
+}
+function _addDeletedPostId(id){
+  if(!id) return;
+  try{
+    const set = _getDeletedPostIds();
+    set.add(String(id));
+    // Mantém só os últimos 300 (FIFO via Array)
+    let arr = [...set];
+    if(arr.length > 300) arr = arr.slice(arr.length - 300);
+    localStorage.setItem('ea_deleted_posts', JSON.stringify(arr));
+  }catch(e){ console.warn('[deleted-posts] save:', e); }
+}
+window._getDeletedPostIds = _getDeletedPostIds;
+window._addDeletedPostId = _addDeletedPostId;
 
 async function deletePost(postId){
   if(!await _euConfirm('Deseja excluir este post?<br>Esta ação não pode ser desfeita.','🗑️')) return;
@@ -6866,6 +6940,10 @@ async function deletePost(postId){
     return;
   }
 
+  // Marca como deletado LOCALMENTE — feed_posts_mv pode estar stale
+  // e retornar este post até o próximo REFRESH MATERIALIZED VIEW
+  _addDeletedPostId(postId);
+
   // Exclui registros filhos em paralelo (silencioso)
   await Promise.allSettled([
     db.from('likes').delete().eq('post_id',postId),
@@ -6875,6 +6953,9 @@ async function deletePost(postId){
     db.from('notifications').delete().eq('post_id',postId),
     db.from('user_feed').delete().eq('post_id',postId),  // remove do feed pré-computado
   ]);
+
+  // ✅ ZERO EGRESS: o filtro client-side via _deletedSet já garante que o post
+  // não reapareça mesmo se feed_posts_mv estiver stale. Sem RPCs extras.
 
   // Remove card do DOM imediatamente — sem esperar REFRESH da view materializada
   document.getElementById('post-'+postId)?.remove();
@@ -9179,10 +9260,10 @@ async function openCommDetail(commId){
   const isBanned=bannedUntil&&bannedUntil>new Date();
   const isImgAvatar=comm.avatar_url&&comm.avatar_url.startsWith('http');
   const avatarHtml=isImgAvatar
-    ?`<img loading="lazy" src="${xss(comm.avatar_url)}" class="comm-avatar-big" style="width:72px;height:72px;">`
+    ?`<img loading="lazy" src="${xss(_toWorkerUrl(comm.avatar_url))}" class="comm-avatar-big" style="width:72px;height:72px;">`
     :`<div class="comm-avatar-big">${comm.avatar_url||'🏘'}</div>`;
   const bannerHtml=comm.banner_url
-    ?`<div class="comm-banner"><img loading="lazy" src="${xss(comm.banner_url)}"><div class="comm-banner-overlay"></div></div>`
+    ?`<div class="comm-banner"><img loading="lazy" src="${xss(_toWorkerUrl(comm.banner_url))}"><div class="comm-banner-overlay"></div></div>`
     :`<div class="comm-banner" style="display:flex;align-items:center;justify-content:center;font-size:64px;">${comm.avatar_url&&!isImgAvatar?comm.avatar_url:'🏘'}</div>`;
   el.innerHTML=`
     <div class="comm-detail-wrap">
@@ -9212,7 +9293,7 @@ async function openCommDetail(commId){
         ${isBanned?`<div style="background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.3);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;font-size:12px;color:var(--neon-pink);">🚫 Banido até ${bannedUntil?.toLocaleDateString('pt-BR')}</div>`:''}
         ${isOwner?`<div style="background:var(--bg-card);border:1px solid var(--border-glow);border-radius:12px;padding:14px;margin-bottom:14px;box-sizing:border-box;width:100%;">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;min-width:0;">
-            ${isImgAvatar?`<img loading="lazy" src="${xss(comm.avatar_url)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:2px solid var(--neon-cyan)40;flex-shrink:0;">`:`<div style="width:36px;height:36px;border-radius:10px;background:rgba(0,255,204,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${comm.avatar_url||'🏘'}</div>`}
+            ${isImgAvatar?`<img loading="lazy" src="${xss(_toWorkerUrl(comm.avatar_url))}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;border:2px solid var(--neon-cyan)40;flex-shrink:0;">`:`<div style="width:36px;height:36px;border-radius:10px;background:rgba(0,255,204,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${comm.avatar_url||'🏘'}</div>`}
             <div style="min-width:0;flex:1;">
               <div style="font-family:Silkscreen,monospace;font-size:11px;color:var(--neon-cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${xss(comm.name)}</div>
               <div style="font-size:9px;color:var(--text-muted);">Postando como comunidade</div>
@@ -10885,6 +10966,13 @@ function switchHomeTab(btn){
   else if(tabId==='ht-chat'){ loadHomeChat(); }
   else if(tabId==='ht-profile'){ loadHomeProfile(); }
   else if(tabId==='ht-alerts'){ loadHomeAlerts(); }
+
+  // ✅ Realtime presence: ativa ao entrar em ht-chat, desativa ao sair
+  if(tabId==='ht-chat'){
+    if(typeof _presenceEnterChat === 'function') _presenceEnterChat();
+  } else {
+    if(typeof _presenceLeaveChat === 'function') _presenceLeaveChat();
+  }
 }
 
 function switchHomeSubTab(tabsId, btn){
@@ -12030,7 +12118,7 @@ async function _shareOnEuAqui(postId, _ignored){
           </div>
         </div>
         <div style="font-size:12px;color:var(--text-light);line-height:1.5;max-height:80px;overflow:hidden;word-break:break-word;">${xss(cleanContent || '(sem texto)')}</div>
-        ${(Array.isArray(originalPost.media_urls) && originalPost.media_urls[0]) ? `<div style="margin-top:8px;border-radius:8px;overflow:hidden;max-height:100px;"><img loading="lazy" src="${xss(originalPost.media_urls[0])}" style="width:100%;height:100px;object-fit:cover;display:block;"></div>` : ''}
+        ${(Array.isArray(originalPost.media_urls) && originalPost.media_urls[0]) ? `<div style="margin-top:8px;border-radius:8px;overflow:hidden;max-height:100px;"><img loading="lazy" src="${xss(_toWorkerUrl(originalPost.media_urls[0]))}" style="width:100%;height:100px;object-fit:cover;display:block;"></div>` : ''}
       </div>
 
       <div style="display:flex;gap:6px;margin-bottom:14px;">
@@ -14191,7 +14279,7 @@ function buildBizCard(biz, isFollowing){
   const div = document.createElement('div');
   div.className = 'biz-card';
   const logo = biz.logo_url
-    ? `<img loading="lazy" src="${xss(biz.logo_url)}" style="width:100%;height:100%;object-fit:cover;">`
+    ? `<img loading="lazy" src="${xss(_toWorkerUrl(biz.logo_url))}" style="width:100%;height:100%;object-fit:cover;">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;">${biz.category==='loja'?'🛍️':'🔧'}</div>`;
   // Rating stars helper
   function renderStarsDisp(ratingVal, countVal){
@@ -14215,7 +14303,7 @@ function buildBizCard(biz, isFollowing){
        </div>`;
   div.innerHTML = `
     <div class="biz-banner">
-      ${biz.banner_url?`<img loading="lazy" src="${xss(biz.banner_url)}" style="width:100%;height:100%;object-fit:cover;">`:''}
+      ${biz.banner_url?`<img loading="lazy" src="${xss(_toWorkerUrl(biz.banner_url))}" style="width:100%;height:100%;object-fit:cover;">`:''}
       <div class="biz-logo">${logo}</div>
       ${_bizGetPlan(biz)==='premium' ? `<div class="biz-verified-badge" title="Loja verificada Premium"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><path d="M50,2 L59,18 L74,8 L73,27 L92,26 L82,41 L98,50 L82,59 L92,74 L73,73 L74,92 L59,82 L50,98 L41,82 L26,92 L27,73 L8,74 L18,59 L2,50 L18,41 L8,26 L27,27 L26,8 L41,18 Z" fill="#FFD700" stroke="white" stroke-width="4" stroke-linejoin="round"/><polyline points="29,52 44,67 71,33" fill="none" stroke="white" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></svg></div>` : ''}
     </div>
@@ -14447,27 +14535,28 @@ async function loadMyBusiness(){
   // Load products
   const {data:prods} = await db.from('business_products').select(BIZ_PROD_SEL).eq('business_id',data.id).eq('available',true);
 
-  // Calcula uso diário e extras de Super Story / Super Post
-  const _today0 = new Date(); _today0.setHours(0,0,0,0);
+  // Calcula uso MENSAL e extras de Super Story / Super Post
+  const _nowD = new Date();
+  const _firstMonthD = new Date(_nowD.getFullYear(), _nowD.getMonth(), 1, 0, 0, 0, 0);
   const [_ssRes, _spRes, _credits] = await Promise.all([
     db.from('olha_aqui').select('id', { count:'exact', head:true })
       .eq('user_id', CU.id).eq('metadata->>type','business_paid')
-      .gte('created_at', _today0.toISOString()),
+      .gte('created_at', _firstMonthD.toISOString()),
     db.from('posts').select('id', { count:'exact', head:true })
       .eq('user_id', CU.id).like('content','[BIZ_SUPER:%')
-      .gte('created_at', _today0.toISOString()),
+      .gte('created_at', _firstMonthD.toISOString()),
     _bizGetStoryCredits(data.id),
   ]);
-  const _ssDayLim   = PLAN_LIMITS[_bizGetPlan(data)].super_story_day;
-  const _spDayLim   = PLAN_LIMITS[_bizGetPlan(data)].super_post_day;
-  const _ssDayUsed  = _ssRes.count || 0;
-  const _spDayUsed  = _spRes.count || 0;
+  const _ssMonthLim = PLAN_LIMITS[_bizGetPlan(data)].super_story_month;
+  const _spMonthLim = PLAN_LIMITS[_bizGetPlan(data)].super_post_month;
+  const _ssMonthUsed = _ssRes.count || 0;
+  const _spMonthUsed = _spRes.count || 0;
   const _ssExtras   = _credits.credits || 0;
   const _spExtras   = _credits.super_post_credits || 0;
-  // Formato unificado X/Y: Y = max(limite_diário, usado_hoje) + extras_disponíveis
-  // Exemplos: 3/3 (sem extras) → admin add 1 → 3/4 → usuário usa → 4/4 → admin add → 4/5
-  const _ssTotal    = Math.max(_ssDayLim, _ssDayUsed) + _ssExtras;
-  const _spTotal    = Math.max(_spDayLim, _spDayUsed) + _spExtras;
+  // Formato unificado X/Y: Y = max(limite_mensal, usado_mês) + extras_disponíveis
+  // Exemplos: 4/4 (sem extras) → admin add 1 → 4/5 → usuário usa → 5/5 → admin add → 5/6
+  const _ssTotal    = Math.max(_ssMonthLim, _ssMonthUsed) + _ssExtras;
+  const _spTotal    = Math.max(_spMonthLim, _spMonthUsed) + _spExtras;
 
   el.innerHTML = `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
@@ -14525,11 +14614,11 @@ async function loadMyBusiness(){
           ${!_esgotado ? `
           <button class="tbtn" style="width:100%;font-size:9px;color:#F59E0B;padding:5px;border-color:rgba(245,158,11,.4);margin-top:2px;" onclick="_prodSuperStory('${data.id}','${p.id}','${xss(p.name)}',${p.price||0},'${xss(p.image_url||'')}','${xss(p.price_label||'')}','${xss(p.description||'')}')">
             ⭐ Super Story Premium
-            <span style="display:block;font-size:8px;color:var(--text-muted);font-weight:400;margin-top:1px;">${_ssDayUsed}/${_ssTotal} hoje${_ssExtras?` (+${_ssExtras} extra)`:''}</span>
+            <span style="display:block;font-size:8px;color:var(--text-muted);font-weight:400;margin-top:1px;">${_ssMonthUsed}/${_ssTotal} no mês${_ssExtras?` (+${_ssExtras} extra)`:''}</span>
           </button>
           <button class="tbtn" style="width:100%;font-size:9px;color:#A78BFA;padding:5px;border-color:rgba(167,139,250,.4);margin-top:2px;" onclick="_prodSuperPost('${data.id}','${xss(p.name)}',${p.price||0},'${xss(p.image_url||'')}','${xss(p.price_label||'')}')">
             ⚡ Super Post Premium
-            <span style="display:block;font-size:8px;color:var(--text-muted);font-weight:400;margin-top:1px;">${_spDayUsed}/${_spTotal} hoje${_spExtras?` (+${_spExtras} extra)`:''}</span>
+            <span style="display:block;font-size:8px;color:var(--text-muted);font-weight:400;margin-top:1px;">${_spMonthUsed}/${_spTotal} no mês${_spExtras?` (+${_spExtras} extra)`:''}</span>
           </button>
           ` : ''}
         </div>`;
@@ -16299,7 +16388,7 @@ async function openBizDetail(biz){
     <div style="position:relative;margin:-28px -28px 0;border-radius:18px 18px 0 0;overflow:hidden;">
       ${biz.banner_url
         ? `<div style="height:140px;background:linear-gradient(135deg,var(--bg-mid),var(--bg-deep));overflow:hidden;">
-             <img loading="lazy" src="${xss(biz.banner_url)}" style="width:100%;height:140px;object-fit:cover;display:block;" onerror="this.parentElement.style.background='linear-gradient(135deg,rgba(0,255,204,.08),rgba(191,95,255,.08))'">
+             <img loading="lazy" src="${xss(_toWorkerUrl(biz.banner_url))}" style="width:100%;height:140px;object-fit:cover;display:block;" onerror="this.parentElement.style.background='linear-gradient(135deg,rgba(0,255,204,.08),rgba(191,95,255,.08))'">
            </div>`
         : `<div style="height:100px;background:linear-gradient(135deg,rgba(0,255,204,.08),rgba(191,95,255,.08));"></div>`
       }
@@ -16307,7 +16396,7 @@ async function openBizDetail(biz){
     ${biz.logo_url
       ? `<div style="position:relative;margin:0 0 12px 16px;display:inline-block;">
            <div style="width:58px;height:58px;border-radius:12px;overflow:hidden;border:3px solid var(--bg-mid);box-shadow:0 4px 16px rgba(0,0,0,.6);background:var(--bg-mid);margin-top:-29px;position:relative;z-index:2;">
-             <img loading="lazy" src="${xss(biz.logo_url)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'">
+             <img loading="lazy" src="${xss(_toWorkerUrl(biz.logo_url))}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'">
            </div>
          </div>`
       : '<div style="height:14px;"></div>'
@@ -18949,7 +19038,7 @@ async function confirmBizNegotiation(bizId, bizName, prodName, prodPrice, priceL
 function previewBizImage(input, previewId, hiddenId){
   const file = input.files[0];
   if(!file) return;
-  const maxMB = 5;
+  const maxMB = 20;
   if(file.size > maxMB*1024*1024) return showToast(`Imagem muito grande (máx. ${maxMB}MB)`,'error');
   const reader = new FileReader();
   reader.onload = e=>{
@@ -19448,7 +19537,7 @@ async function gerarLinkConvite(bizId, bizName){
         ${friends.map(f=>`
           <div data-uid="${f.id}" data-selected="0" style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .2s;"
             onclick="toggleBizInviteFriend(this)">
-            <img loading="lazy" src="${xss(f.avatar_url||'https://api.dicebear.com/7.x/pixel-art/svg?seed='+(f.username||'u'))}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(0,255,204,.2);flex-shrink:0;" onerror="this.src='https://api.dicebear.com/7.x/pixel-art/svg?seed=u'">
+            <img loading="lazy" src="${xss(_toWorkerUrl(f.avatar_url||'https://api.dicebear.com/7.x/pixel-art/svg?seed='+(f.username||'u')))}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(0,255,204,.2);flex-shrink:0;" onerror="this.src='https://api.dicebear.com/7.x/pixel-art/svg?seed=u'">
             <div style="flex:1;min-width:0;">
               <div style="font-family:Silkscreen,monospace;font-size:10px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${xss(f.full_name||f.username||'')}</div>
               <div style="font-size:9px;color:var(--neon-cyan);">@${xss(f.username||'')}</div>
@@ -20663,7 +20752,14 @@ function setupPresence(){
 // true = usuário está na tela de mensagens ou com chat widget aberto
 function _presenceIsInChat(){
   if(_privacyGet('invisible_mode')) return false;
+  // Página de mensagens dedicada
   if(document.getElementById('page-messages')?.classList.contains('active')) return true;
+  // Sub-aba "Chat" da home page (#ht-chat ativo dentro de #page-home ativo)
+  // Detecta presença mesmo SEM conversa específica aberta — basta estar na aba
+  const htChat = document.getElementById('ht-chat');
+  const pageHome = document.getElementById('page-home');
+  if(htChat?.classList.contains('active') && pageHome?.classList.contains('active')) return true;
+  // Chat widget aberto (mobile)
   if(document.getElementById('ht-chat-window')?.classList.contains('chat-open')) return true;
   return false;
 }
@@ -20996,7 +21092,7 @@ async function loadAboutBusinesses(userId){
             ${bizs.map(b=>`
               <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);">
                 <div style="width:38px;height:38px;border-radius:8px;overflow:hidden;background:rgba(0,255,204,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">
-                  ${b.logo_url?`<img loading="lazy" src="${xss(b.logo_url)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='🏪'">`:'🏪'}
+                  ${b.logo_url?`<img loading="lazy" src="${xss(_toWorkerUrl(b.logo_url))}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='🏪'">`:'🏪'}
                 </div>
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:12px;font-weight:600;color:var(--text-light);">${xss(b.name||'')}</div>
@@ -23565,7 +23661,7 @@ async function copyCommInvite(commId, name){
         ${friends.map(f=>`
           <div data-uid="${f.id}" data-selected="0" style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .2s;"
             onclick="toggleCommInviteFriend(this)">
-            <img loading="lazy" src="${xss(f.avatar_url||'https://api.dicebear.com/7.x/pixel-art/svg?seed='+(f.username||'u'))}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(0,255,204,.2);flex-shrink:0;" onerror="this.src='https://api.dicebear.com/7.x/pixel-art/svg?seed=u'">
+            <img loading="lazy" src="${xss(_toWorkerUrl(f.avatar_url||'https://api.dicebear.com/7.x/pixel-art/svg?seed='+(f.username||'u')))}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(0,255,204,.2);flex-shrink:0;" onerror="this.src='https://api.dicebear.com/7.x/pixel-art/svg?seed=u'">
             <div style="flex:1;min-width:0;">
               <div style="font-family:Silkscreen,monospace;font-size:10px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${xss(f.full_name||f.username||'')}</div>
               <div style="font-size:9px;color:var(--neon-cyan);">@${xss(f.username||'')}</div>
@@ -23871,7 +23967,7 @@ async function openEditComm(commId){
     <div class="igrp"><label class="ilbl">Nova imagem (opcional)</label>
       <div style="display:flex;gap:10px;align-items:center;">
         <div id="edit-comm-prev" style="width:60px;height:60px;border-radius:12px;border:2px solid var(--border-glow);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;">
-          ${comm.avatar_url&&comm.avatar_url.startsWith('http')?`<img loading="lazy" src="${xss(comm.avatar_url)}" style="width:100%;height:100%;object-fit:cover;">`:(comm.avatar_url||'🏘')}
+          ${comm.avatar_url&&comm.avatar_url.startsWith('http')?`<img loading="lazy" src="${xss(_toWorkerUrl(comm.avatar_url))}" style="width:100%;height:100%;object-fit:cover;">`:(comm.avatar_url||'🏘')}
         </div>
         <button type="button" class="tbtn" onclick="document.getElementById('edit-comm-file').click()">📷 Trocar foto</button>
         <input type="file" id="edit-comm-file" accept="image/*" style="display:none" onchange="previewEditCommImg(this)">
@@ -23882,7 +23978,7 @@ async function openEditComm(commId){
       <label class="ilbl">Banner (opcional)</label>
       <div style="position:relative;height:90px;border-radius:10px;overflow:hidden;border:2px dashed var(--border-glow);background:linear-gradient(135deg,#0a0a2a,#1a0a3a);cursor:pointer;" id="edit-comm-banner-prev" onclick="document.getElementById('edit-comm-banner-file').click()">
         ${comm.banner_url
-          ? `<img loading="lazy" src="${xss(comm.banner_url)}" style="width:100%;height:100%;object-fit:cover;">`
+          ? `<img loading="lazy" src="${xss(_toWorkerUrl(comm.banner_url))}" style="width:100%;height:100%;object-fit:cover;">`
           : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-muted);"><div style="font-size:20px;">🖼</div><div style="font-size:9px;margin-top:4px;">Clique para adicionar banner</div></div>`}
       </div>
       <input type="file" id="edit-comm-banner-file" accept="image/*" style="display:none" onchange="previewCommBanner(this,'edit-comm-banner-prev')">
@@ -24840,16 +24936,17 @@ window.oaPublishPaidStory = async function oaPublishPaidStory(bizId, itemData) {
   const plan   = _bizGetPlan(biz);
   const limits = PLAN_LIMITS[plan];
 
-  // Conta super stories publicados hoje
-  const today = new Date(); today.setHours(0,0,0,0);
-  const { count: storiesHoje } = await db.from('olha_aqui')
+  // Conta super stories publicados NO MÊS ATUAL
+  const _now2 = new Date();
+  const firstOfMonth2 = new Date(_now2.getFullYear(), _now2.getMonth(), 1, 0, 0, 0, 0);
+  const { count: storiesMes } = await db.from('olha_aqui')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', CU.id)
     .eq('metadata->>type', 'business_paid')
-    .gte('created_at', today.toISOString());
+    .gte('created_at', firstOfMonth2.toISOString());
 
-  // Verifica limite diário de Super Story Premium (free só publica com extras)
-  if (!TEST_NO_LIMITS_SUPER && limits.super_story_day === 0) {
+  // Verifica limite mensal de Super Story Premium (free só publica com extras)
+  if (!TEST_NO_LIMITS_SUPER && limits.super_story_month === 0) {
     const credits0 = await _bizGetStoryCredits(bizId);
     if ((credits0.credits || 0) === 0) {
       return showToast('⬆️ Faça upgrade para publicar Super Stories Premium!', 'error');
@@ -24858,12 +24955,12 @@ window.oaPublishPaidStory = async function oaPublishPaidStory(bizId, itemData) {
 
   // Verifica créditos extras
   const credits = await _bizGetStoryCredits(bizId);
-  const totalAllowed = limits.super_story_day + (credits.credits || 0);
+  const totalAllowed = limits.super_story_month + (credits.credits || 0);
 
-  if (!TEST_NO_LIMITS_SUPER && (storiesHoje || 0) >= totalAllowed) {
+  if (!TEST_NO_LIMITS_SUPER && (storiesMes || 0) >= totalAllowed) {
     if (!credits.credits) {
       const px = await _getAdminAddonPrice('super_story_price', 10);
-      return showToast(`Limite de ${limits.super_story_day} Super Story(s)/dia atingido. Compre um extra por R$${px.toFixed(2).replace('.',',')}!`, 'error');
+      return showToast(`Limite de ${limits.super_story_month} Super Story(s)/mês atingido. Compre um extra por R$${px.toFixed(2).replace('.',',')}!`, 'error');
     }
   }
 
@@ -24928,7 +25025,7 @@ window.oaPublishPaidStory = async function oaPublishPaidStory(bizId, itemData) {
     itemPriceLabel:  itemData?.itemPriceLabel  || '',
     itemDescription: itemData?.itemDescription || '',
     // Desconto de créditos ocorre SOMENTE após a publicação ser confirmada no banco
-    _deductCredit:      (storiesHoje || 0) >= limits.super_story_day && credits.credits > 0,
+    _deductCredit:      (storiesMes || 0) >= limits.super_story_month && credits.credits > 0,
     _creditNewVal:      Math.max(0, (credits.credits || 0) - 1),
     _deductReachBoost:  extraReach > 0,
   };
@@ -30303,7 +30400,7 @@ window._lpRemoveBannerImage=function(){
 window._lpHandleBannerUpload=async function(input){
   const file=input.files&&input.files[0];
   if(!file)return;
-  if(file.size>5*1024*1024){if(typeof showToast==='function')showToast('Imagem muito grande (máx 5MB)','error');return;}
+  if(file.size>20*1024*1024){if(typeof showToast==='function')showToast('Imagem muito grande (máx 20MB)','error');return;}
   const info=document.getElementById('lp-banner-file-info');
   if(info)info.textContent='⏳ Enviando...';
 
@@ -30420,6 +30517,33 @@ if(img.dataset?.fb?.includes('api.dicebear.com')){const u=new URL(img.dataset.fb
   } else {
     _patchAll();
   }
+
+  /* ─── INTERCEPTOR DE innerHTML ─────────────────────────────────────────
+     Rescreve URLs Supabase Storage no STRING HTML antes do parser processar.
+     Previne que o browser inicie o fetch original ANTES do MutationObserver
+     conseguir rewritar o src. Sem isso, cada imagem gera 2 requests:
+     1 ao Supabase (egress) + 1 ao Worker (cacheado).
+     ───────────────────────────────────────────────────────────────────── */
+  try{
+    const _innerDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+    if(_innerDesc && _innerDesc.set && _innerDesc.get){
+      const _SB_RX = /https?:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/([^"'<>\s)]+)/g;
+      Object.defineProperty(Element.prototype, 'innerHTML', {
+        configurable: true,
+        enumerable: true,
+        get: _innerDesc.get,
+        set: function(v){
+          if(typeof v === 'string' && v.indexOf('supabase.co') !== -1){
+            v = v.replace(_SB_RX, function(_m, path){
+              return 'https://media.euaqui.store/media/' + encodeURIComponent(path);
+            });
+          }
+          _innerDesc.set.call(this, v);
+        }
+      });
+    }
+  }catch(_){ /* ambiente sem definição customizável — ignora */ }
+
   /* Observa novos elementos adicionados dinamicamente — feeds, modais, listas. */
   new MutationObserver((muts)=>{
     for(const m of muts){
@@ -30664,7 +30788,7 @@ self.addEventListener('fetch', e => {
 })();
 
 // ═══════════════════════════════════════════════════════════════
-// PAINEL ADMIN — apenas @kodash1
+// PAINEL ADMIN — @kodash e @kodash1
 // ═══════════════════════════════════════════════════════════════
 window.openAdminModal = async function() {
   if(!_isAdmin()) return;
